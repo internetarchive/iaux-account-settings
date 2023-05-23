@@ -10,11 +10,12 @@ export async function BackendServiceHandler(options: any) {
     identifier: '',
     ...options,
   };
+  console.log(options);
 
-  let baseHost = `http://localhost/index.php?submit=1&identifier=${
+  let baseHost = `http://localhost/demo/index.php?submit=1&identifier=${
     option.identifier
-  },
-  &fname=${encodeURIComponent('hello-world.jpg')}`;
+  }&fname=${encodeURIComponent(options.fname)}`;
+  console.log(baseHost);
 
   const location = window?.location;
 
@@ -25,6 +26,7 @@ export async function BackendServiceHandler(options: any) {
   formData.append('action', option.action);
   formData.append('identifier', option.identifier);
   formData.append('identifier', option.identifier);
+  console.log(formData.get('action'));
 
   try {
     await fetch(baseHost, {

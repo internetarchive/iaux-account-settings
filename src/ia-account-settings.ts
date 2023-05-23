@@ -1,14 +1,14 @@
 /* eslint-disable */
 import { html, css, LitElement, CSSResultGroup, PropertyValues } from 'lit';
-import { property, customElement, state } from 'lit/decorators.js';
+import { property, customElement, state, query } from 'lit/decorators.js';
 import { AccountSettings } from './styles/account-settings';
 import { MailingLists } from './config';
 import type { IAAccountSettingsInterface } from './ia-account-settings.interface';
 import type { UserModel, NewsLetterModel, ErrorModel } from './models';
 import { BackendServiceHandler } from './services/backend-service';
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
+import '@internetarchive/ia-pic-uploader';
 
-import './components/ia-pic-uploader';
 import './components/authentication-template';
 
 @customElement('ia-account-settings')
@@ -33,11 +33,23 @@ export class IAAccountSettings
   @property({ type: String }) newsletterData: NewsLetterModel = {};
 
   /**
+   * contain boolean status about google account is linked
+   * @type {Boolean}
+   */
+  @property({ type: Boolean }) googleAccountLinked: Boolean = false;
+
+  /**
+   * constain fileSelect input field
+   * @type {HTMLInputElement}
+   */
+  @property({ type: HTMLInputElement }) fileInput?: HTMLInputElement;
+
+  /**
    * loan history visibility
    *
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) loanHistoryFlag = '';
+  @property({ type: String }) loanHistoryFlag = 'private';
 
   /**
    * contains error data for form fields
@@ -92,7 +104,24 @@ export class IAAccountSettings
    */
   @state() private deleteButton?: boolean = true;
 
+  @state() private isSaveButtonDiabled?: boolean = false;
+
+  @query('ia-pic-uploader') private iaPicUploader?: HTMLFormElement;
+
+  firstUpdated() {
+    console.log('component params');
+    console.log(this.userData);
+    console.log(this.newsletterData);
+    console.log('google is linked ' + this.googleAccountLinked);
+
+    this.userData.borrowHistory = this.loanHistoryFlag;
+  }
+
   updated(changed: PropertyValues) {
+    this.fileInput = this.iaPicUploader?.shadowRoot?.querySelector(
+      '.file-selector'
+    ) as HTMLInputElement;
+
     if (changed.has('userData')) {
       this.showLoadingIndicator = false;
     }
@@ -134,7 +163,9 @@ export class IAAccountSettings
   /** @inheritdoc */
   setBorrowHistory(e: Event) {
     const input = e.target as HTMLInputElement;
-    this.userData.borrowHistory = 'public';
+    this.userData.borrowHistory = 'private';
+    if (input.checked) this.userData.borrowHistory = 'public';
+
     console.log(input.checked);
   }
 
@@ -142,12 +173,13 @@ export class IAAccountSettings
   setNewsletterData(e: Event) {
     const input = e.target as HTMLInputElement;
     const fieldName = input.name;
+
     if (fieldName === 'mailing_lists_ml_best_of') {
-      this.newsletterData.ml_best_of = true;
+      this.newsletterData.ml_best_of = input.checked;
     } else if (fieldName === 'mailing_lists_ml_events') {
-      this.newsletterData.ml_events = true;
+      this.newsletterData.ml_events = input.checked;
     } else if (fieldName === 'mailing_lists_ml_donors') {
-      this.newsletterData.ml_donors = true;
+      this.newsletterData.ml_donors = input.checked;
     }
   }
 
@@ -234,7 +266,7 @@ export class IAAccountSettings
 
       const response = await BackendServiceHandler({
         action: 'save-account',
-        identifier: 'this.identifier',
+        identifier: this.userData.identifier,
         userdata: this.userData,
         newsletterData: this.newsletterData,
       });
@@ -257,7 +289,7 @@ export class IAAccountSettings
 
   get settingsTemplate() {
     return html`<div class="settings-template">
-      <form name="account-settings" method="POST">
+      <form id="form" name="account-settings" method="post">
         <div class="form-element header">
           <h2>Account Settings</h2>
           <button class="${this.showLoadingIndicator ? 'pointer-none' : ''}">
@@ -266,8 +298,9 @@ export class IAAccountSettings
           <button
             id="save-button"
             class=${this.showLoadingIndicator ? 'pointer-none' : ''}
-            type="button"
+            type="submit"
             @click=${this.saveAccountSettings}
+            .disabled=${this.isSaveButtonDiabled}
           >
             ${this.showLoadingIndicator
               ? this.loadingIndicatorTemplate
@@ -277,12 +310,16 @@ export class IAAccountSettings
 
         <div class="form-element">
           <label>Change profile picture</label>
-          <ia-pic-uploader previewImg=${this.previewImg}></ia-pic-uploader>
+          <ia-pic-uploader
+            identifier=${this.userData.identifier}
+            picture=${this.previewImg}
+            type="compact"
+          ></ia-pic-uploader>
         </div>
 
         <div class="form-element ">
           <label for="screenname">
-            Change screenname <small>(will not change user id)</small>
+            Change screenname <small>(will no t change user id)</small>
           </label>
           <input
             type="text"
@@ -319,8 +356,11 @@ export class IAAccountSettings
             class="form-control"
             id="password"
             name="password"
+            value="${this.userData.password}"
             autocomplete="new-password"
+            @input=${this.setPassword}
           />
+
           <span class="error-field">${this.fieldsError.password}</span>
         </div>
 
@@ -330,7 +370,7 @@ export class IAAccountSettings
             type="checkbox"
             id="borrow-history"
             name="borrow-history ${this.loanHistoryFlag}"
-            .checked=${this.loanHistoryFlag == 'public' ? 'true' : ''}
+            .checked=${this.loanHistoryFlag === 'public'}
             @click=${this.setBorrowHistory}
           />
           <label for="borrow-history"> Visible to the public</label>
@@ -370,14 +410,13 @@ export class IAAccountSettings
         ${this.attemptToDelete ? this.deleteAccountTemplate : ''}
       </form>
 
-      ${this.userData.isAdmin ? this.adminFunctionsTemplate : ''};
+      ${this.userData.isAdmin ? this.adminFunctionsTemplate : ''}
     </div>`;
   }
 
   get mailingListsTemplate() {
     return MailingLists.map(list => {
       if (!list.public) return html``;
-
       return html`<input
           type="checkbox"
           id="${list.key}"
@@ -395,6 +434,7 @@ export class IAAccountSettings
         name="linked-account"
         id="linked-account"
         type="radio"
+        .checked="${this.googleAccountLinked}"
       />
       <label for="linked-account"> Google Account</label>`;
   }
@@ -432,9 +472,7 @@ export class IAAccountSettings
         <label for="delete-account">
           I'm sure I want to delete my account.</label
         >
-
         <p for="borrow-history">This action cannot be reversed.</p>
-
         <button
           id="delete-button"
           class="delete-button ${this.showLoadingIndicator
@@ -446,8 +484,7 @@ export class IAAccountSettings
             this.showLoadingIndicator = true;
 
             const response = await BackendServiceHandler({
-              action: 'delete-account',
-              identifier: 'this.identifier',
+              action: 'action_delete_account',
             });
             console.log(response);
           }}

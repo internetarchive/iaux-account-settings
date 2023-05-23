@@ -1,6 +1,4 @@
-import { LitElement } from 'lit';
-
-export interface IAAccountSettingsInterface extends LitElement {
+export interface IAAccountSettingsInterface {
   /**
    * set screenname in UserModel
    *

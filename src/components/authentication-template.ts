@@ -2,7 +2,7 @@
 import { html, css, LitElement, CSSResultGroup } from 'lit';
 import { property, customElement, state } from 'lit/decorators.js';
 import { AccountSettings } from '../styles/account-settings';
-import { ServiceResponseModel } from '../models';
+import type { ServiceResponseModel } from '../models';
 import { BackendServiceHandler } from '../services/backend-service';
 
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';

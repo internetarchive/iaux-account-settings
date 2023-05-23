@@ -38,7 +38,6 @@ export const AccountSettings = css`
     border-radius: 5px;
     cursor: pointer;
     min-height: 3.7rem;
-    // width: 110px;
   }
   .header button:disabled {
     background: #8ca3bf;
@@ -171,6 +170,7 @@ export const AccountSettings = css`
   .delete-button {
     background: #bb0505;
     margin-top: 0;
+    min-width: 101px;
   }
 
   .delete-button:disabled {

@@ -22,19 +22,16 @@
   <div id="demo">
   </div>
   <script type="module">
-    // import { html, render } from 'https://cdn.jsdelivr.net/npm/lit-element@3.3.2/+esm';
-    // import { html, css, render } from '../node_modules/lit/index.js';
-    import {html, render} from 'https://unpkg.com/lit-html?module';
-
-
+    import { html, render } from 'lit';
     import '../dist/index.js';
 
     render(
       html`<ia-account-settings
         .userData=${{
+          identifier: '@neeraj-archive',
           screenname: 'neeraj-archive',
           email: 'neeraj@archive.org',
-          password: '*******',
+          password: 'neerajPassword',
           isAdmin: true,
         }}
         .newsletterData=${{
@@ -42,6 +39,7 @@
           ml_donors: true
         }}
         .loanHistoryFlag=${'public'}
+        .googleAccountLinked=${true}
       >
       </ia-account-settings>`,
 
