@@ -1,14 +1,23 @@
-/* eslint-disable */
 import { html, css, LitElement, CSSResultGroup, PropertyValues } from 'lit';
 import { property, customElement, state, query } from 'lit/decorators.js';
+import { backendServiceHandler } from './services/backend-service';
+import { togglePassword, preventDefault, trimString } from './services/util';
+
 import { AccountSettings } from './styles/account-settings';
-import { MailingLists } from './config';
+import { IAButtonStyles } from './styles/ia-buttons';
+
 import type { IAAccountSettingsInterface } from './ia-account-settings.interface';
-import type { UserModel, NewsLetterModel, ErrorModel } from './models';
-import { BackendServiceHandler } from './services/backend-service';
+import type {
+  UserModel,
+  SelectedMailingLists,
+  ErrorModel,
+  ResponseModel,
+  MailingLists,
+  GoogleConfigModel,
+} from './models';
+
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
 import '@internetarchive/ia-pic-uploader';
-
 import './components/authentication-template';
 
 @customElement('ia-account-settings')
@@ -22,34 +31,69 @@ export class IAAccountSettings
    * @type {UserModel}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) userData: UserModel = {};
+  @property({ type: Object }) userData: UserModel = {};
 
   /**
-   * contains newsletter selected data of current user
+   * active mailing lists available
    *
-   * @type {NewsLetterModel}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) newsletterData: NewsLetterModel = {};
+  @property({ type: Object }) mailingLists?: MailingLists;
+
+  /**
+   * user's selected mailing lists
+   *
+   * @type {SelectedMailingLists}
+   * @memberof IAUXAccountSettings
+   */
+  @property({ type: Object }) selectedMailingLists: SelectedMailingLists = {};
+
+  /**
+   * contain boolean status about google account is linked
+   * @type {String}
+   */
+  @property({ type: String }) profilePicture: String = '';
+
+  /**
+   * contain boolean status about google account is linked
+   * @type {String}
+   */
+  @property({ type: String }) loanHistoryFlag: String | boolean = '';
 
   /**
    * contain boolean status about google account is linked
    * @type {Boolean}
    */
-  @property({ type: Boolean }) googleAccountLinked: Boolean = false;
+  @property({ type: Boolean }) googleLinked: Boolean = false;
 
   /**
-   * constain fileSelect input field
+   * google auth config
+   *
+   * @type {GoogleConfigModel}
+   * @memberof IAAccountSettings
+   */
+  @property({ type: Object }) googleConfig: GoogleConfigModel = {};
+
+  /**
+   * contain boolean status about google account is linked
+   * @type {String}
+   */
+  @property({ type: String }) profileCsrfToken: String = '';
+
+  /**
+   * contain fileSelect input field
    * @type {HTMLInputElement}
    */
-  @property({ type: HTMLInputElement }) fileInput?: HTMLInputElement;
+  @state() private fileInput?: HTMLInputElement;
 
   /**
-   * loan history visibility
+   * determine if want to show authenticate page
    *
+   * @private
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) loanHistoryFlag = 'private';
+  @state() private lookingToAuth?: boolean = true;
 
   /**
    * contains error data for form fields
@@ -61,30 +105,12 @@ export class IAAccountSettings
   @state() private fieldsError: ErrorModel = {};
 
   /**
-   * preview image on iaux-pic-uploader component
-   *
-   * @private
-   * @memberof IAUXAccountSettings
-   */
-  @state() private previewImg =
-    'https://i.ebayimg.com/images/g/LpwAAOSwhcJWF1UM/s-l500.jpg';
-
-  /**
    * determine if need to show loading indicator on buttons
    * @private
    * @type {boolean}
    * @memberof IAUXAccountSettings
    */
   @state() private showLoadingIndicator?: boolean;
-
-  /**
-   * determine if want to show authenticate page
-   *
-   * @private
-   * @type {boolean}
-   * @memberof IAUXAccountSettings
-   */
-  @state() private lookingToAuth?: boolean = false;
 
   /**
    * open delete form
@@ -102,19 +128,70 @@ export class IAAccountSettings
    * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private deleteButton?: boolean = true;
+  @state() private confirmDelete?: boolean = false;
 
-  @state() private isSaveButtonDiabled?: boolean = false;
+  /**
+   * determine if need to disable save button
+   *
+   * @private
+   * @type {boolean}
+   * @memberof IAAccountSettings
+   */
+  @state() private saveButtonDisabled?: boolean = true;
 
+  /**
+   * object that contains updated fields data/text
+   *
+   * @private
+   * @type {Object}
+   * @memberof IAAccountSettings
+   */
+  @state() private updatedFields?: Object = {};
+
+  /**
+   * since we moved pic upload feature in separate component,
+   * just selecting this component to get new selected profile picture
+   *
+   * @private
+   * @type {HTMLFormElement}
+   * @memberof IAAccountSettings
+   */
   @query('ia-pic-uploader') private iaPicUploader?: HTMLFormElement;
 
-  firstUpdated() {
-    console.log('component params');
-    console.log(this.userData);
-    console.log(this.newsletterData);
-    console.log('google is linked ' + this.googleAccountLinked);
+  /**
+   * grabe password field to toggle its visibility
+   *
+   * @private
+   * @type {HTMLInputElement}
+   * @memberof IAAccountSettings
+   */
+  @query('#password') private passwordField?: HTMLInputElement;
 
-    this.userData.borrowHistory = this.loanHistoryFlag;
+  private passwordMinLength = 3;
+
+  private passwordMaxLength = 100;
+
+  private passwordLengthMessage = `The password needs to be between ${this.passwordMinLength} and ${this.passwordMaxLength} characters long.`;
+
+  private userAvatarSuccessMsg =
+    'Your profile picture uploaded succesfully, it may take few seconds to reflect.';
+
+  private oldUserData: UserModel = {
+    email: '',
+    screenname: '',
+  };
+
+  firstUpdated() {
+    console.log(this.googleConfig);
+    this.oldUserData = Object.assign(this.oldUserData, {
+      email: this.userData.email,
+      screenname: this.userData.screenname,
+    });
+
+    this.iaPicUploader?.addEventListener('click', () => {
+      console.log('ia-pic-uploader-clicked!');
+      this.saveButtonDisabled = false;
+    });
   }
 
   updated(changed: PropertyValues) {
@@ -122,8 +199,9 @@ export class IAAccountSettings
       '.file-selector'
     ) as HTMLInputElement;
 
-    if (changed.has('userData')) {
+    if (changed.has('userData') || changed.has('selectedMailingLists')) {
       this.showLoadingIndicator = false;
+      this.updatedFields = {};
     }
   }
 
@@ -144,6 +222,7 @@ export class IAAccountSettings
     const input = e.target as HTMLInputElement;
     this.userData.screenname = input.value;
     this.fieldsError.screenname = '';
+    this.resetErrorFields('screenname');
   }
 
   /** @inheritdoc */
@@ -151,6 +230,7 @@ export class IAAccountSettings
     const input = e.target as HTMLInputElement;
     this.userData.email = input.value;
     this.fieldsError.email = '';
+    this.resetErrorFields('email');
   }
 
   /** @inheritdoc */
@@ -158,176 +238,294 @@ export class IAAccountSettings
     const input = e.target as HTMLInputElement;
     this.userData.password = input.value;
     this.fieldsError.password = '';
+    this.resetErrorFields('password');
   }
 
   /** @inheritdoc */
   setBorrowHistory(e: Event) {
     const input = e.target as HTMLInputElement;
-    this.userData.borrowHistory = 'private';
-    if (input.checked) this.userData.borrowHistory = 'public';
-
-    console.log(input.checked);
+    this.loanHistoryFlag = input.checked ? 'public' : 'private';
+    this.saveButtonDisabled = false;
   }
 
   /** @inheritdoc */
-  setNewsletterData(e: Event) {
+  setMailingList(e: Event) {
     const input = e.target as HTMLInputElement;
     const fieldName = input.name;
 
-    if (fieldName === 'mailing_lists_ml_best_of') {
-      this.newsletterData.ml_best_of = input.checked;
-    } else if (fieldName === 'mailing_lists_ml_events') {
-      this.newsletterData.ml_events = input.checked;
-    } else if (fieldName === 'mailing_lists_ml_donors') {
-      this.newsletterData.ml_donors = input.checked;
+    if (input.checked) {
+      this.selectedMailingLists.push(fieldName);
+    } else {
+      const index = this.selectedMailingLists.indexOf(fieldName);
+      this.selectedMailingLists.splice(index, 1);
     }
+
+    this.saveButtonDisabled = false;
   }
 
   /** @inheritdoc */
-  trimScreenname() {
-    return this.userData.screenname.replace('/s+/', ' ').trim();
+  resetErrorFields(field: string) {
+    let errorFields = {};
+
+    if (field === 'email') {
+      errorFields = { ...this.fieldsError, email: '' };
+    } else if (field === 'screenname') {
+      errorFields = { ...this.fieldsError, screenname: '' };
+    } else {
+      errorFields = { ...this.fieldsError, password: '' };
+    }
+
+    this.fieldsError = errorFields;
+    this.saveButtonDisabled = false;
+  }
+
+  /** @inheritdoc */
+  hasFieldError() {
+    /* eslint-disable-next-line array-callback-return, consistent-return */
+    return Object.values(this.fieldsError).every(value => {
+      if (value !== '') {
+        return true;
+      }
+    });
   }
 
   /** @inheritdoc */
   async validateScreenname() {
-    this.trimScreenname();
+    let error = '';
+    this.userData.screenname = trimString(this.userData.screenname as string);
 
     if (this.userData.screenname === '') {
-      this.fieldsError.screenname = 'Screen name can not be empty.';
-    } else if (this.userData.screenname.match('/[\\\\"\']/')) {
-      this.fieldsError.screenname = 'Invalid screen name';
+      error = 'Screen name can not be empty.';
+    } else if (this.userData.screenname?.match(/[\\]/gm)) {
+      error = 'Invalid screen name';
     } else if (await !this.isScreennameAvailable()) {
-      this.fieldsError.screenname =
-        'This screen name is already being used by another user.';
+      error = 'This screen name is already being used by another user.';
     }
+
+    if (error) this.saveButtonDisabled = true;
+    this.fieldsError = { ...this.fieldsError, screenname: error };
   }
 
   /** @inheritdoc */
   async validateEmail() {
+    let error = '';
+    this.userData.email = trimString(this.userData.email as string);
+
     const emailRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
     if (this.userData.email === '') {
-      this.fieldsError.email = 'Email address can not be empty.';
-    } else if (!this.userData.email.match(emailRegex)) {
-      this.fieldsError.email =
-        'Email address contains invalid characters and/or whitespace.';
+      console.log('ddd');
+      error = 'Email address can not be empty.';
+    } else if (!this.userData.email?.match(emailRegex)) {
+      error = 'Email address contains invalid characters and/or whitespace.';
     } else if (await !this.isEmailAvailable()) {
-      this.fieldsError.email =
-        'This email address is already being used by another user.';
+      error = 'This email address is already being used by another user.';
+    }
+
+    if (error) this.saveButtonDisabled = true;
+    this.fieldsError = { ...this.fieldsError, email: error };
+  }
+
+  /** @inheritdoc */
+  async validatePassword() {
+    this.userData.password = trimString(this.userData.password as string);
+    const invalidPassword =
+      this.userData.password.length < this.passwordMinLength ||
+      this.userData.password.length > this.passwordMaxLength;
+
+    if (this.userData.password && invalidPassword) {
+      this.saveButtonDisabled = true;
+      this.fieldsError = {
+        ...this.fieldsError,
+        password: this.passwordLengthMessage,
+      };
     }
   }
 
   /** @inheritdoc */
-  async validatePassword() {}
-
-  /** @inheritdoc */
   async isEmailAvailable() {
-    const response = await BackendServiceHandler({
-      action: 'email-available',
-      identifier: 'this.identifier',
-    });
+    if (this.userData.email !== this.oldUserData?.email) {
+      const response = (await backendServiceHandler({
+        action: 'email-available',
+        email: this.userData.email,
+      })) as ResponseModel;
 
-    return response;
+      console.log('isEmailAvailable', response);
+      return response.success;
+    }
+
+    return false;
   }
 
   /** @inheritdoc */
   async isScreennameAvailable() {
-    const response = await BackendServiceHandler({
-      action: 'screenname-available',
-      identifier: 'this.identifier',
-    });
+    if (this.userData.screenname !== this.oldUserData.screenname) {
+      const response = (await backendServiceHandler({
+        action: 'screenname-available',
+        screenname: this.userData.screenname,
+      })) as ResponseModel;
 
-    return response;
+      console.log('isScreennameAvailable', response);
+      return response.success;
+    }
+
+    return false;
   }
 
   /**
-   * handle to save user account settings
-   *
-   * @param {Event} event
-   * @memberof IAUXAccountSettings
+   * @inheritdoc
    */
-  async saveAccountSettings(event: Event) {
+  async saveAccountSettings(event: Event): Promise<void> {
     this.showLoadingIndicator = true;
+    this.saveButtonDisabled = true;
+    preventDefault(event);
 
-    event.preventDefault();
-    event.stopPropagation();
+    await this.validateScreenname();
+    await this.validateEmail();
+    await this.validatePassword();
 
-    // await this.validateScreenname();
-    // await this.validateEmail();
-    // await this.validatePassword();
+    if (this.fileInput?.files?.length) {
+      document.dispatchEvent(
+        new CustomEvent('saveProfileAvatar', {
+          detail: { file: 'demo', op: 'save it 123' },
+        })
+      );
 
+      this.updatedFields = {
+        ...this.updatedFields,
+        ...{
+          file: this.userAvatarSuccessMsg,
+        },
+      } as object;
+    }
+
+    // if don't have any error field, save-account
     if (
-      !this.fieldsError.email ||
-      !this.fieldsError.screenname ||
+      !this.fieldsError.email &&
+      !this.fieldsError.screenname &&
       !this.fieldsError.password
     ) {
-      console.log('something is wrong');
+      console.log('start save call');
 
-      const response = await BackendServiceHandler({
+      const response = (await backendServiceHandler({
         action: 'save-account',
         identifier: this.userData.identifier,
-        userdata: this.userData,
-        newsletterData: this.newsletterData,
-      });
+        userData: this.userData,
+        selectedMailingLists: this.selectedMailingLists,
+        loanHistoryFlag: this.loanHistoryFlag,
+      })) as ResponseModel;
       console.log(response);
 
-      setTimeout(() => {
-        this.showLoadingIndicator = false;
-      }, 2000);
+      if (response.success) {
+        const fields = {
+          ...this.updatedFields,
+          ...response.updatedFields,
+        } as object;
+
+        this.updatedFields = fields;
+      }
+
+      console.log('this.updatedFields', this.updatedFields);
     }
+
+    setTimeout(async () => {
+      this.showLoadingIndicator = false;
+
+      // if not field errors, just enable save button
+      if (!this.hasFieldError()) this.saveButtonDisabled = false;
+    }, 100);
+  }
+
+  /**
+   * @deprecated
+   * @inheritdoc
+   * @memberof IAAccountSettings
+   */
+  async handleSaveFile() {
+    const inputFile = this.fileInput?.files?.[0];
+    const getParams = `identifier=${
+      this.userData.identifier
+    }&fname=${encodeURIComponent(inputFile?.name ?? '')}&submit=1`;
+
+    await backendServiceHandler({
+      action: 'save-file',
+      identifier: this.userData.identifier,
+      file: inputFile,
+      getParam: getParams,
+      endpoint: '/services/post-file.php',
+      headers: { 'Content-type': 'multipart/form-data; charset=UTF-8' },
+    });
+
+    this.updatedFields = {
+      ...this.updatedFields,
+      ...{
+        file: this.userAvatarSuccessMsg,
+      },
+    } as object;
   }
 
   get verificationTemplate() {
+    console.log(this.googleConfig);
     return html` <authentication-template
-      authenticationType="ia"
-      @ia-authenticated=${(e: Event) => {
+      authenticationType="sdf"
+      identifier=${this.userData.identifier}
+      email=${this.userData.email}
+      googleConfig=${JSON.stringify(this.googleConfig)}
+      @ia-authenticated=${() => {
+        console.log('ia-authenticated');
         this.lookingToAuth = false;
       }}
     ></authentication-template>`;
   }
 
   get settingsTemplate() {
+    /* eslint-disable lit-a11y/click-events-have-key-events, lit-a11y/anchor-is-valid */
     return html`<div class="settings-template">
-      <form id="form" name="account-settings" method="post">
-        <div class="form-element header">
-          <h2>Account Settings</h2>
-          <button class="${this.showLoadingIndicator ? 'pointer-none' : ''}">
+      <form id="form" name="account-settings" method="post" autocomplete="off">
+        <div
+          class="form-element header ${this.showLoadingIndicator
+            ? 'pointer-none'
+            : ''}"
+        >
+          <h2>Account settings</h2>
+          <button class="ia-button" @click=${() => window.location.reload()}>
             Cancel
           </button>
           <button
-            id="save-button"
-            class=${this.showLoadingIndicator ? 'pointer-none' : ''}
-            type="submit"
+            class="ia-button primary"
             @click=${this.saveAccountSettings}
-            .disabled=${this.isSaveButtonDiabled}
+            .disabled=${this.saveButtonDisabled}
           >
             ${this.showLoadingIndicator
               ? this.loadingIndicatorTemplate
-              : 'Save Changes'}
+              : 'Save changes'}
           </button>
         </div>
+
+        <div class="form-element data-updated">${this.getResponseTemplate}</div>
 
         <div class="form-element">
           <label>Change profile picture</label>
           <ia-pic-uploader
             identifier=${this.userData.identifier}
-            picture=${this.previewImg}
+            picture="${this.profilePicture}"
             type="compact"
           ></ia-pic-uploader>
         </div>
 
         <div class="form-element ">
           <label for="screenname">
-            Change screenname <small>(will no t change user id)</small>
+            Change screenname <small>(will not change user id)</small>
           </label>
           <input
             type="text"
             class="form-control"
             id="screenname"
             name="screenname"
-            value="${this.userData.screenname}"
+            .value="${this.userData.screenname}"
             @input=${this.setScreenname}
+            @blur=${this.validateScreenname}
           />
           <span class="error-field">${this.fieldsError.screenname}</span>
         </div>
@@ -341,36 +539,44 @@ export class IAAccountSettings
             class="form-control"
             id="email"
             name="email"
-            value="${this.userData.email}"
+            .value="${this.userData.email}"
             @input=${this.setEmail}
+            @blur=${this.validateEmail}
           />
           <span class="error-field">${this.fieldsError.email}</span>
         </div>
 
-        <div class="form-element">
+        <div class="form-element" style="position: relative">
           <label for="password">
-            Change Internet Archive / Open Library Password
+            Change Internet Archive / Open Library password
           </label>
           <input
             type="password"
             class="form-control"
             id="password"
             name="password"
-            value="${this.userData.password}"
             autocomplete="new-password"
             @input=${this.setPassword}
+            @blur=${this.validatePassword}
           />
-
+          <img
+            class="password-icon"
+            src="https://archive.org/images/eye-crossed.svg"
+            @click=${(e: Event) =>
+              togglePassword(e, this.passwordField as HTMLInputElement)}
+            alt="Hide text"
+          />
           <span class="error-field">${this.fieldsError.password}</span>
         </div>
 
         <div class="form-element">
-          <label>Set borrow histing</label>
+          <label>Set borrow history</label>
           <input
             type="checkbox"
             id="borrow-history"
             name="borrow-history ${this.loanHistoryFlag}"
-            .checked=${this.loanHistoryFlag === 'public'}
+            .checked=${this.loanHistoryFlag === 'public' ||
+            this.loanHistoryFlag === true}
             @click=${this.setBorrowHistory}
           />
           <label for="borrow-history"> Visible to the public</label>
@@ -380,16 +586,18 @@ export class IAAccountSettings
           <label>Newsletter subscriptions</label>
           <p>
             Stay up to date with what's happening at the Internet Archive by
-            signing up for our free newsletters
+            signing up for our free newsletters.
           </p>
           ${this.mailingListsTemplate}
         </div>
 
         <div class="form-element">
-          <label for="vehicle5"
-            >Linked to third party accounts (e.g. Google)</label
+          <label for="linked-account"
+            >Linked 3rd party accounts (e.g. Google)</label
           >
-          ${this.linkedAccountTemplate}
+          ${this.googleLinked
+            ? this.linkedAccountTemplate
+            : 'You have no linked accounts'}
         </div>
 
         <div
@@ -398,11 +606,11 @@ export class IAAccountSettings
           <a
             href="javascript:void(0)"
             style="color: #bb0505"
-            @click=${(e: Event) => {
+            @click=${() => {
               this.attemptToDelete = true;
               window.scrollTo();
             }}
-            >Delete Internet Archive / Open Library Account (require
+            >Delete Internet Archive / Open Library account (requires
             confirmation)
           </a>
         </div>
@@ -414,17 +622,25 @@ export class IAAccountSettings
     </div>`;
   }
 
+  get getResponseTemplate() {
+    return Object.values(this.updatedFields as object)?.map(
+      msg => html`<span class="success-field">&#10003; ${msg}</span>`
+    );
+  }
+
   get mailingListsTemplate() {
-    return MailingLists.map(list => {
-      if (!list.public) return html``;
+    return Object.entries(this.mailingLists as object).map(list => {
+      if (!list[1].public) return html``;
+
       return html`<input
           type="checkbox"
-          id="${list.key}"
-          name="mailing_lists_${list.key}"
-          .checked=${this.newsletterData?.hasOwnProperty(list.key)}
-          @click=${this.setNewsletterData}
+          id="${list[1].key}"
+          name="${list[1].key}"
+          .checked=${this.selectedMailingLists?.includes(list[1].key as string)}
+          @click=${this.setMailingList}
         />
-        <label for="${list.key}"> ${list.name}: ${list.short_desc}</label
+        <label for="${list[1].key}">
+          ${list[1].name}: ${list[1].short_desc}</label
         ><br /> `;
     });
   }
@@ -433,8 +649,8 @@ export class IAAccountSettings
     return html` <input
         name="linked-account"
         id="linked-account"
-        type="radio"
-        .checked="${this.googleAccountLinked}"
+        type="checkbox"
+        .checked="${this.googleLinked}"
       />
       <label for="linked-account"> Google Account</label>`;
   }
@@ -448,7 +664,7 @@ export class IAAccountSettings
 
   get deleteAccountTemplate() {
     return html`
-      <div class="form-element delete-account">
+      <div class="form-element delete-section">
         <label>Delete Internet Archive / Open Library Account</label>
         <p>
           Items you've uploaded will remain on the internet archive. If you with
@@ -463,48 +679,51 @@ export class IAAccountSettings
 
         <input
           type="checkbox"
-          id="delete-account"
-          name=""
+          id="confirm-delete"
+          name="confirm-delete"
           @click=${() => {
-            this.deleteButton = !this.deleteButton;
+            this.confirmDelete = !this.confirmDelete;
           }}
         />
-        <label for="delete-account">
+        <label for="confirm-delete">
           I'm sure I want to delete my account.</label
         >
-        <p for="borrow-history">This action cannot be reversed.</p>
-        <button
-          id="delete-button"
-          class="delete-button ${this.showLoadingIndicator
-            ? 'pointer-none'
-            : ''}"
-          type="button"
-          .disabled=${this.deleteButton}
-          @click=${async () => {
-            this.showLoadingIndicator = true;
 
-            const response = await BackendServiceHandler({
-              action: 'action_delete_account',
-            });
-            console.log(response);
-          }}
-        >
-          ${this.showLoadingIndicator
-            ? this.loadingIndicatorTemplate
-            : 'Delete account'}
-        </button>
+        <p for="borrow-history">This action cannot be reversed.</p>
+
+        ${this.getDeleteButton}
       </div>
     `;
+  }
+
+  get getDeleteButton() {
+    return html`<button
+      id="delete-button"
+      class="ia-button danger ${this.showLoadingIndicator
+        ? 'pointer-none'
+        : ''}"
+      type="button"
+      .disabled=${!this.confirmDelete}
+      @click=${async () => {
+        this.showLoadingIndicator = true;
+        const response = (await backendServiceHandler({
+          action: 'delete-account',
+          confirmDelete: this.confirmDelete,
+        })) as ResponseModel;
+
+        if (response.success) window.location.reload();
+      }}
+    >
+      ${this.showLoadingIndicator
+        ? this.loadingIndicatorTemplate
+        : 'Delete account'}
+    </button>`;
   }
 
   get adminFunctionsTemplate() {
     return html`<div class="col-md-4">
       <div class="form-element admin-functions">
-        <h2>
-          You are an admin!
-          <span class="iconochive-First" aria-hidden="true"></span
-          ><span class="icon-label sr-only">First</span>
-        </h2>
+        <h2>Admin functions</h2>
         <hr />
         <ul>
           <li>
@@ -518,7 +737,9 @@ export class IAAccountSettings
             >
           </li>
           <li>
-            <a href="/iathreads/forum-new.php">Make a new Forum</a>
+            <a href="https://archive.org/iathreads/forum-new.php"
+              >Make a new Forum</a
+            >
           </li>
           <li>
             <a href="https://pi.archive.org/control/blockparty.php"
@@ -527,16 +748,12 @@ export class IAAccountSettings
           </li>
         </ul>
       </div>
-
-      <img
-        src="https://soshace.com/wp-content/uploads/rcl-uploads/articles/2019/12/4915113.jpg"
-        width="200"
-      />
     </div>`;
   }
 
   static get styles(): CSSResultGroup {
     return [
+      IAButtonStyles,
       AccountSettings,
       css`
         :host {
@@ -545,6 +762,17 @@ export class IAAccountSettings
           color: var(--iaux-account-settings-text-color, #000);
           font-size: 1.4rem;
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          outline: none;
+          border: none;
+        }
+
+        .ia-button.primary {
+          width: 138px;
+        }
+
+        ia-pic-uploader:focus,
+        ia-pic-uploader:focus-visible {
+          outline: none;
         }
       `,
     ];

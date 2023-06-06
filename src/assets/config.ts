@@ -4,8 +4,8 @@ const ML_BEST_OF = 'ml_best_of';
 const ML_EVENTS = 'ml_events';
 const ML_DONORS = 'ml_donors';
 
-export const MailingLists = [
-  {
+export default {
+  ML_BEST_OF: {
     key: ML_BEST_OF,
     name: 'Best of the Archive',
     interest_id: 'e7594f8604',
@@ -14,7 +14,7 @@ export const MailingLists = [
     short_desc:
       'Useful resources, unique stories, and fun finds from our collections',
   },
-  {
+  ML_EVENTS: {
     key: ML_EVENTS,
     name: 'Event Notices',
     interest_id: '98cc7bf635',
@@ -22,7 +22,7 @@ export const MailingLists = [
     public: true,
     short_desc: 'Invitations to and news about our events',
   },
-  {
+  ML_DONORS: {
     key: ML_DONORS,
     name: 'Donor Communications',
     interest_id: 'ff44b81002',
@@ -30,4 +30,4 @@ export const MailingLists = [
     public: true,
     short_desc: 'Information about how your donations are being used.',
   },
-];
+};

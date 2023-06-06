@@ -32,20 +32,19 @@ export interface IAAccountSettingsInterface {
   setBorrowHistory(e: Event): void;
 
   /**
-   * set newsletter data selection in NewsLetterModel
+   * check if fields has errors
    *
-   * @param {Event} e
+   * @return {*}  {boolean}
    * @memberof IAAccountSettingsInterface
    */
-  setNewsletterData(e: Event): void;
+  hasFieldError(): boolean;
 
   /**
-   * get trimmed screenname
-   *
-   * @return {*}  {string}
+   * reset error fields
+   * @param {string} value
    * @memberof IAAccountSettingsInterface
    */
-  trimScreenname(): string;
+  resetErrorFields(value: string): void;
 
   /**
    * validate the screenname and set error in ErrorModel
@@ -56,12 +55,28 @@ export interface IAAccountSettingsInterface {
   validateScreenname(): Promise<void>;
 
   /**
+   * return true if screenname is available
+   *
+   * @return {*}  {boolean}
+   * @memberof IAAccountSettingsInterface
+   */
+  isScreennameAvailable(): Promise<boolean | undefined>;
+
+  /**
    * validate the email and set error in ErrorModel
    *
    * @return {*}  {Promise<void>}
    * @memberof IAAccountSettingsInterface
    */
   validateEmail(): Promise<void>;
+
+  /**
+   * save the selected user profile picture
+   *
+   * @return {*}  {Promise<void>}
+   * @memberof IAAccountSettingsInterface
+   */
+  handleSaveFile(): Promise<void>;
 
   /**
    * after validation, save the account setting

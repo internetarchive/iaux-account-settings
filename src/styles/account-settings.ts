@@ -1,10 +1,6 @@
 import { css } from 'lit';
 
 export const AccountSettings = css`
-  .authentication-template a {
-    display: inherit;
-    margin-top: 5px;
-  }
   .settings-template {
     display: flex;
   }
@@ -14,30 +10,30 @@ export const AccountSettings = css`
     flex-direction: column;
   }
 
+  .ia-button.primary {
+    display: inline;
+  }
   .header {
     display: flex;
     align-items: center;
   }
   .header h2 {
+    margin-block: 0;
     margin-right: 10px;
   }
   button {
     user-select: none;
   }
-  a {
-    color: #3a92b7;
+  a,
+  a:hover,
+  a:focus {
+    color: #4b64ff;
   }
   button,
   input[type='submit'],
   .delete-button {
     margin-right: 5px;
     background: #000;
-    border: 1px solid gray;
-    color: white;
-    padding: 5px;
-    border-radius: 5px;
-    cursor: pointer;
-    min-height: 3.7rem;
   }
   .header button:disabled {
     background: #8ca3bf;
@@ -50,7 +46,7 @@ export const AccountSettings = css`
   input[type='text'],
   input[type='email'],
   input[type='password'] {
-    display: block;
+    display: inline-block;
     width: 60%;
     padding: 6px 12px;
     font-size: 14px;
@@ -72,11 +68,14 @@ export const AccountSettings = css`
   .form-element {
     margin-bottom: 15px;
   }
+  .form-element.header {
+    margin-bottom: 0;
+  }
   .form-element label:first-child {
     display: block;
     font-weight: bold;
     font-size: 1.4rem;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
   }
   .form-element label {
     font-weight: normal;
@@ -107,18 +106,37 @@ export const AccountSettings = css`
     text-decoration: underline;
   }
 
+  .data-updated {
+    display: grid;
+    background: rgb(238, 253, 238);
+    margin-right: 20px;
+    border-left: 5px solid green;
+    margin: 2rem 0;
+    width: fit-content;
+  }
+
   .error-field {
     color: #bb0505;
     margin: 3px 0px;
     font-size: 1.2rem;
+    display: block;
   }
 
-  #upload-region {
-    margin-top: 5px;
-    display: inherit;
+  .success-field {
+    color: #219518;
+    font-size: 1.4rem;
+    padding: 10px;
+    cursor: pointer;
+    display: block;
   }
 
-  .btn-disabled {
+  .success-field .close {
+    float: right;
+    padding: 2px 6px;
+  }
+  .success-field .close:hover {
+    background: #b9c9b9;
+    cursor: pointer;
   }
 
   iaux-pic-uploader label {
@@ -128,21 +146,12 @@ export const AccountSettings = css`
     margin-bottom: 5px;
   }
 
-  #save-button::before {
-    content: 'Save Changes';
-    display: block;
-    height: 0;
-    min-width: 35px;
-    visibility: hidden;
-    speak: none;
-  }
-
   ia-activity-indicator {
     display: inline-block;
     width: 20px;
     height: 20px;
-    margin-top: 2px;
     color: white;
+    vertical-align: middle;
     --activityIndicatorLoadingRingColor: #fff;
     --activityIndicatorLoadingDotColor: #fff;
   }
@@ -152,13 +161,14 @@ export const AccountSettings = css`
     pointer-events: none;
   }
 
-  .delete-account {
-    border: 2px solid #bb0505;
+  .delete-section {
+    border: 2px solid #f18286;
     padding: 10px;
     margin-left: -10px;
+    background: #fee;
   }
 
-  .delete-account a {
+  .delete-section a {
     font-weight: normal;
     display: inherit;
   }
@@ -167,14 +177,11 @@ export const AccountSettings = css`
     display: none;
   }
 
-  .delete-button {
-    background: #bb0505;
-    margin-top: 0;
-    min-width: 101px;
-  }
-
-  .delete-button:disabled {
-    background: #c75e5e;
-    pointer-events: none;
+  .password-icon {
+    vertical-align: middle;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 0px 5px 5px 0px;
+    border: 0;
   }
 `;

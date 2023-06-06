@@ -21,25 +21,34 @@
 <body>
   <div id="demo">
   </div>
+  <script src="https://archive.org/components/ia-third-party-auth/ia-third-party-auth.js?v=04cf36d4" type="module"></script>
+
   <script type="module">
     import { html, render } from 'lit';
     import '../dist/index.js';
+    import MailingLists from '../dist/src/assets/config.js'
 
     render(
-      html`<ia-account-settings
-        .userData=${{
+      html`
+      <ia-account-settings
+        userData='${JSON.stringify({
           identifier: '@neeraj-archive',
-          screenname: 'neeraj-archive',
+          screenname: 'neeraj archive',
           email: 'neeraj@archive.org',
           password: 'neerajPassword',
           isAdmin: true,
+        })}'
+        mailingLists=${JSON.stringify(MailingLists)}
+        selectedMailingLists=${JSON.stringify(['ml_best_of', 'ml_donors'])}
+        profilePicture=${'../demo/default-preview.jpg'}
+        loanHistoryFlag=${'public'}
+        ?googleLinked=${true}
+        googleConfig=${JSON.stringify({"verifyUser":"@neerajksharma453_gmail_com","csrftoken":"35cb39b7820612eb32432dc902e6687d","googleId":"41383750805-slra1gn7ge0bcc8ihpqnkk7hf0fo7dem.apps.googleusercontent.com","class":"focus-on-child-only","baseHost":"www-neeraj2.archive.org"})}
+        profileCsrfToken=${'sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5'}
+        updatedFields=${{
+          "screenname": "Your screen name has been updated successfully.",
+          "mailing_lists": "Mailing lists has been updated!"
         }}
-        .newsletterData=${{
-          ml_events: true,
-          ml_donors: true
-        }}
-        .loanHistoryFlag=${'public'}
-        .googleAccountLinked=${true}
       >
       </ia-account-settings>`,
 

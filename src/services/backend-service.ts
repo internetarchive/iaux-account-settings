@@ -4,37 +4,50 @@
  * Helper to call loan service
  * @param {Object} options
  */
-export async function BackendServiceHandler(options: any) {
+export async function backendServiceHandler(options: any) {
   const option = {
     action: null,
     identifier: '',
+    userData: {},
+    selectedMailingLists: [],
+    baseHost: '/account/index.php',
+    headers: {},
     ...options,
   };
-  console.log(options);
 
-  let baseHost = `http://localhost/demo/index.php?submit=1&identifier=${
-    option.identifier
-  }&fname=${encodeURIComponent(options.fname)}`;
-  console.log(baseHost);
+  console.log(option);
 
-  const location = window?.location;
-
-  if (location?.pathname === '/demo/') baseHost = `/demo/`;
-
+  let baseHost = option.baseHost;
   let response = {};
+
   let formData = new FormData();
   formData.append('action', option.action);
+  formData.append('email', option.email);
   formData.append('identifier', option.identifier);
-  formData.append('identifier', option.identifier);
-  console.log(formData.get('action'));
+  formData.append('screenname', option.screenname);
+
+  if (option.action === 'verify-password') {
+    formData.append('password', option.password);
+  } else if (option.action === 'delete-account') {
+    formData.append('delete-confirm', option.confirmDelete);
+  } else if (option.action === 'save-account') {
+    formData.append('userData', JSON.stringify(option.userData));
+    formData.append('selectedMailingLists', option.selectedMailingLists);
+    formData.append('loanHistoryFlag', option.loanHistoryFlag);
+  } else if (option.action === 'save-file') {
+    formData = option.file;
+    baseHost = `${option.endpoint}?${option.getParam}`;
+  }
 
   try {
     await fetch(baseHost, {
       mode: 'no-cors',
       method: 'POST',
+      headers: option.headers,
       body: formData,
     })
       .then(async response => {
+        console.log('response - ', response);
         /**
          * return success response for /demo/ server...
          */
@@ -45,12 +58,13 @@ export async function BackendServiceHandler(options: any) {
           };
         }
 
-        /**
-         * return success response for /demo/ server...
-         */
-        // if (baseHost == '/demo/1' || baseHost == '/demo/') {
-        //   return { status: true, message: 'data has been saved!' };
-        // }
+        // return {
+        //   'status': true,
+        //   'updatedFields': {
+        //     "screenname": "Your screen name has been updated successfully.",
+        //     "mailing_lists": "Mailing lists has been updated!"
+        //   }
+        // };
 
         /**
          * The response is a Response instance.

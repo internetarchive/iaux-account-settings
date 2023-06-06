@@ -15,7 +15,7 @@
     "inlineSources": true,
     "rootDir": "./",
     "declaration": true,
-    "importsNotUsedAsValues": "error",
+    "importsNotUsedAsValues": "remove",
     "plugins": [
       {
         "name": "ts-lit-plugin"
