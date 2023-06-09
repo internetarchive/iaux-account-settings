@@ -39,6 +39,8 @@ export async function backendServiceHandler(options: any) {
     baseHost = `${option.endpoint}?${option.getParam}`;
   }
 
+  if (window?.location?.pathname === '/demo/') baseHost = '/demo/';
+
   try {
     await fetch(baseHost, {
       mode: 'no-cors',
@@ -48,23 +50,30 @@ export async function backendServiceHandler(options: any) {
     })
       .then(async response => {
         console.log('response - ', response);
+
         /**
          * return success response for /demo/ server...
+         * @ignore
          */
-        if (option.action === 'screenname-available1') {
-          return {
-            status: false,
-            error: 'This screen name is already being used by another user.',
-          };
+        if (baseHost === '/demo/') {
+          if (
+            option.action === 'screenname-available' &&
+            option.screenname === 'neeraj-archive'
+          ) {
+            return {
+              success: false,
+              error: 'This screen name is already being used by another user.',
+            };
+          } else {
+            return {
+              success: true,
+              updatedFields: {
+                screenname: 'Your screen name has been updated successfully.',
+                mailing_lists: 'Mailing lists has been updated.',
+              },
+            };
+          }
         }
-
-        // return {
-        //   'status': true,
-        //   'updatedFields': {
-        //     "screenname": "Your screen name has been updated successfully.",
-        //     "mailing_lists": "Mailing lists has been updated!"
-        //   }
-        // };
 
         /**
          * The response is a Response instance.

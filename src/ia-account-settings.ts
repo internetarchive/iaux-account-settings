@@ -1,18 +1,23 @@
-import { html, css, LitElement, CSSResultGroup, PropertyValues } from 'lit';
+import {
+  html,
+  css,
+  LitElement,
+  CSSResultGroup,
+  PropertyValues,
+  nothing,
+} from 'lit';
 import { property, customElement, state, query } from 'lit/decorators.js';
 import { backendServiceHandler } from './services/backend-service';
 import { togglePassword, preventDefault, trimString } from './services/util';
-
 import { AccountSettings } from './styles/account-settings';
 import { IAButtonStyles } from './styles/ia-buttons';
-
 import type { IAAccountSettingsInterface } from './ia-account-settings.interface';
 import type {
   UserModel,
-  SelectedMailingLists,
   ErrorModel,
   ResponseModel,
-  MailingLists,
+  MailingListsModel,
+  SelectedMailingListsModel,
   GoogleConfigModel,
 } from './models';
 
@@ -38,15 +43,16 @@ export class IAAccountSettings
    *
    * @memberof IAUXAccountSettings
    */
-  @property({ type: Object }) mailingLists?: MailingLists;
+  @property({ type: Object }) mailingLists?: MailingListsModel;
 
   /**
    * user's selected mailing lists
    *
-   * @type {SelectedMailingLists}
+   * @type {SelectedMailingListsModel}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: Object }) selectedMailingLists: SelectedMailingLists = {};
+  @property({ type: Object }) selectedMailingLists: SelectedMailingListsModel =
+    {};
 
   /**
    * contain boolean status about google account is linked
@@ -56,9 +62,9 @@ export class IAAccountSettings
 
   /**
    * contain boolean status about google account is linked
-   * @type {String}
+   * @type {String | Boolean}
    */
-  @property({ type: String }) loanHistoryFlag: String | boolean = '';
+  @property({ type: String }) loanHistoryFlag: String | Boolean = '';
 
   /**
    * contain boolean status about google account is linked
@@ -90,10 +96,10 @@ export class IAAccountSettings
    * determine if want to show authenticate page
    *
    * @private
-   * @type {boolean}
+   * @type {Boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private lookingToAuth?: boolean = true;
+  @state() private lookingToAuth?: Boolean = true;
 
   /**
    * contains error data for form fields
@@ -107,37 +113,37 @@ export class IAAccountSettings
   /**
    * determine if need to show loading indicator on buttons
    * @private
-   * @type {boolean}
+   * @type {Boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private showLoadingIndicator?: boolean;
+  @state() showLoadingIndicator?: Boolean;
 
   /**
    * open delete form
    *
    * @private
-   * @type {boolean}
+   * @type {Boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private attemptToDelete?: boolean;
+  @state() private attemptToDelete?: Boolean;
 
   /**
    * enable delete button when you make sure
    *
    * @private
-   * @type {boolean}
+   * @type {Boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private confirmDelete?: boolean = false;
+  @state() private confirmDelete?: Boolean = false;
 
   /**
    * determine if need to disable save button
    *
    * @private
-   * @type {boolean}
+   * @type {Boolean}
    * @memberof IAAccountSettings
    */
-  @state() private saveButtonDisabled?: boolean = true;
+  @state() saveButtonDisabled?: Boolean = true;
 
   /**
    * object that contains updated fields data/text
@@ -146,7 +152,7 @@ export class IAAccountSettings
    * @type {Object}
    * @memberof IAAccountSettings
    */
-  @state() private updatedFields?: Object = {};
+  @state() private updatedFields?: ResponseModel = {};
 
   /**
    * since we moved pic upload feature in separate component,
@@ -182,15 +188,9 @@ export class IAAccountSettings
   };
 
   firstUpdated() {
-    console.log(this.googleConfig);
     this.oldUserData = Object.assign(this.oldUserData, {
       email: this.userData.email,
       screenname: this.userData.screenname,
-    });
-
-    this.iaPicUploader?.addEventListener('click', () => {
-      console.log('ia-pic-uploader-clicked!');
-      this.saveButtonDisabled = false;
     });
   }
 
@@ -206,10 +206,11 @@ export class IAAccountSettings
   }
 
   render() {
+    const keepAuth = localStorage.getItem('keep-authenticated');
     return html`
       <main id="maincontent">
         <div class="container">
-          ${this.lookingToAuth
+          ${this.lookingToAuth && keepAuth !== 'yes'
             ? this.verificationTemplate
             : this.settingsTemplate}
         </div>
@@ -221,7 +222,6 @@ export class IAAccountSettings
   setScreenname(e: Event) {
     const input = e.target as HTMLInputElement;
     this.userData.screenname = input.value;
-    this.fieldsError.screenname = '';
     this.resetErrorFields('screenname');
   }
 
@@ -298,7 +298,7 @@ export class IAAccountSettings
       error = 'Screen name can not be empty.';
     } else if (this.userData.screenname?.match(/[\\]/gm)) {
       error = 'Invalid screen name';
-    } else if (await !this.isScreennameAvailable()) {
+    } else if ((await this.isScreennameAvailable()) === false) {
       error = 'This screen name is already being used by another user.';
     }
 
@@ -315,7 +315,6 @@ export class IAAccountSettings
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
     if (this.userData.email === '') {
-      console.log('ddd');
       error = 'Email address can not be empty.';
     } else if (!this.userData.email?.match(emailRegex)) {
       error = 'Email address contains invalid characters and/or whitespace.';
@@ -351,11 +350,10 @@ export class IAAccountSettings
         email: this.userData.email,
       })) as ResponseModel;
 
-      console.log('isEmailAvailable', response);
       return response.success;
     }
 
-    return false;
+    return true;
   }
 
   /** @inheritdoc */
@@ -366,17 +364,16 @@ export class IAAccountSettings
         screenname: this.userData.screenname,
       })) as ResponseModel;
 
-      console.log('isScreennameAvailable', response);
       return response.success;
     }
 
-    return false;
+    return true;
   }
 
   /**
    * @inheritdoc
    */
-  async saveAccountSettings(event: Event): Promise<void> {
+  async saveAccountSettings(event: Event) {
     this.showLoadingIndicator = true;
     this.saveButtonDisabled = true;
     preventDefault(event);
@@ -385,29 +382,14 @@ export class IAAccountSettings
     await this.validateEmail();
     await this.validatePassword();
 
+    // check if user selected different user-avatar,
+    // if yes, dispatch an event to ia-pic-uploader component
     if (this.fileInput?.files?.length) {
-      document.dispatchEvent(
-        new CustomEvent('saveProfileAvatar', {
-          detail: { file: 'demo', op: 'save it 123' },
-        })
-      );
-
-      this.updatedFields = {
-        ...this.updatedFields,
-        ...{
-          file: this.userAvatarSuccessMsg,
-        },
-      } as object;
+      document.dispatchEvent(new CustomEvent('saveProfileAvatar'));
     }
 
-    // if don't have any error field, save-account
-    if (
-      !this.fieldsError.email &&
-      !this.fieldsError.screenname &&
-      !this.fieldsError.password
-    ) {
-      console.log('start save call');
-
+    // if don't have any active error, just procced to save settings
+    if (!this.hasFieldError()) {
       const response = (await backendServiceHandler({
         action: 'save-account',
         identifier: this.userData.identifier,
@@ -415,66 +397,46 @@ export class IAAccountSettings
         selectedMailingLists: this.selectedMailingLists,
         loanHistoryFlag: this.loanHistoryFlag,
       })) as ResponseModel;
-      console.log(response);
 
-      if (response.success) {
-        const fields = {
-          ...this.updatedFields,
-          ...response.updatedFields,
-        } as object;
-
-        this.updatedFields = fields;
+      if (response.success && response.updatedFields) {
+        this.updatedFields = response.updatedFields;
       }
-
-      console.log('this.updatedFields', this.updatedFields);
     }
 
     setTimeout(async () => {
       this.showLoadingIndicator = false;
-
-      // if not field errors, just enable save button
-      if (!this.hasFieldError()) this.saveButtonDisabled = false;
     }, 100);
   }
 
   /**
-   * @deprecated
-   * @inheritdoc
+   * show success message when profile-picture is uploaded successfully
+   *
    * @memberof IAAccountSettings
    */
-  async handleSaveFile() {
-    const inputFile = this.fileInput?.files?.[0];
-    const getParams = `identifier=${
-      this.userData.identifier
-    }&fname=${encodeURIComponent(inputFile?.name ?? '')}&submit=1`;
-
-    await backendServiceHandler({
-      action: 'save-file',
-      identifier: this.userData.identifier,
-      file: inputFile,
-      getParam: getParams,
-      endpoint: '/services/post-file.php',
-      headers: { 'Content-type': 'multipart/form-data; charset=UTF-8' },
-    });
+  profilePictureUploaded() {
+    this.saveButtonDisabled = false;
 
     this.updatedFields = {
       ...this.updatedFields,
       ...{
         file: this.userAvatarSuccessMsg,
       },
-    } as object;
+    } as ResponseModel;
   }
 
   get verificationTemplate() {
-    console.log(this.googleConfig);
     return html` <authentication-template
-      authenticationType="sdf"
+      authenticationType="${this.googleLinked ? 'google' : 'ia'}"
       identifier=${this.userData.identifier}
       email=${this.userData.email}
       googleConfig=${JSON.stringify(this.googleConfig)}
       @ia-authenticated=${() => {
-        console.log('ia-authenticated');
         this.lookingToAuth = false;
+        try {
+          localStorage.setItem('keep-authenticated', 'yes');
+        } catch (error) {
+          /** it's ok to empty */
+        }
       }}
     ></authentication-template>`;
   }
@@ -489,12 +451,17 @@ export class IAAccountSettings
             : ''}"
         >
           <h2>Account settings</h2>
-          <button class="ia-button" @click=${() => window.location.reload()}>
+          <button
+            class="ia-button dark"
+            @click=${() => window.location.reload()}
+          >
             Cancel
           </button>
           <button
             class="ia-button primary"
-            @click=${this.saveAccountSettings}
+            @click=${(e: Event) => {
+              this.saveAccountSettings(e);
+            }}
             .disabled=${this.saveButtonDisabled}
           >
             ${this.showLoadingIndicator
@@ -511,6 +478,12 @@ export class IAAccountSettings
             identifier=${this.userData.identifier}
             picture="${this.profilePicture}"
             type="compact"
+            @fileChanged=${() => {
+              this.saveButtonDisabled = false;
+            }}
+            @fileUploaded=${() => {
+              this.profilePictureUploaded();
+            }}
           ></ia-pic-uploader>
         </div>
 
@@ -546,7 +519,7 @@ export class IAAccountSettings
           <span class="error-field">${this.fieldsError.email}</span>
         </div>
 
-        <div class="form-element" style="position: relative">
+        <div class="form-element">
           <label for="password">
             Change Internet Archive / Open Library password
           </label>
@@ -564,7 +537,7 @@ export class IAAccountSettings
             src="https://archive.org/images/eye-crossed.svg"
             @click=${(e: Event) =>
               togglePassword(e, this.passwordField as HTMLInputElement)}
-            alt="Hide text"
+            alt="View text"
           />
           <span class="error-field">${this.fieldsError.password}</span>
         </div>
@@ -605,7 +578,6 @@ export class IAAccountSettings
         >
           <a
             href="javascript:void(0)"
-            style="color: #bb0505"
             @click=${() => {
               this.attemptToDelete = true;
               window.scrollTo();
@@ -629,6 +601,8 @@ export class IAAccountSettings
   }
 
   get mailingListsTemplate() {
+    if (!this.mailingLists) return nothing;
+
     return Object.entries(this.mailingLists as object).map(list => {
       if (!list[1].public) return html``;
 
@@ -652,7 +626,7 @@ export class IAAccountSettings
         type="checkbox"
         .checked="${this.googleLinked}"
       />
-      <label for="linked-account"> Google Account</label>`;
+      <label for="linked-account"> Google</label>`;
   }
 
   get loadingIndicatorTemplate() {
@@ -665,9 +639,9 @@ export class IAAccountSettings
   get deleteAccountTemplate() {
     return html`
       <div class="form-element delete-section">
-        <label>Delete Internet Archive / Open Library Account</label>
+        <label>Delete Internet Archive / Open Library account</label>
         <p>
-          Items you've uploaded will remain on the internet archive. If you with
+          Items you've uploaded will remain on the Internet Archive. If you wish
           to remove items,<br />
           please do so before delete your account.
         </p>
@@ -685,12 +659,10 @@ export class IAAccountSettings
             this.confirmDelete = !this.confirmDelete;
           }}
         />
-        <label for="confirm-delete">
-          I'm sure I want to delete my account.</label
+        <label for="confirm-delete"
+          >I'm sure I want to delete my account.</label
         >
-
         <p for="borrow-history">This action cannot be reversed.</p>
-
         ${this.getDeleteButton}
       </div>
     `;
@@ -703,7 +675,7 @@ export class IAAccountSettings
         ? 'pointer-none'
         : ''}"
       type="button"
-      .disabled=${!this.confirmDelete}
+      ?disabled=${!this.confirmDelete}
       @click=${async () => {
         this.showLoadingIndicator = true;
         const response = (await backendServiceHandler({

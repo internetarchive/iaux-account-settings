@@ -17,7 +17,7 @@ export class AuthenticationTemplate extends LitElement {
    * @type {string}
    * @memberof AuthenticationTemplate
    */
-  @property({ type: String }) authenticationType?: string;
+  @property({ type: String }) authenticationType?: string = 'ia';
 
   /**
    * user identifier
@@ -28,7 +28,7 @@ export class AuthenticationTemplate extends LitElement {
   @property({ type: String }) identifier: string = '';
 
   /**
-   * user identifier
+   * user email/username
    *
    * @type {string}
    * @memberof AuthenticationTemplate
@@ -36,7 +36,7 @@ export class AuthenticationTemplate extends LitElement {
   @property({ type: String }) email: string = '';
 
   /**
-   * user identifier
+   * google auth configuration
    *
    * @type {GoogleConfigModel}
    * @memberof AuthenticationTemplate
@@ -50,30 +50,42 @@ export class AuthenticationTemplate extends LitElement {
    * @type {boolean}
    * @memberof AuthenticationTemplate
    */
-  @state() private showLoadingIndicator?: boolean;
+  @state() showLoadingIndicator?: boolean;
 
   /**
-   * determine if need to show loading indicator on buttons
+   * hold the password
    * @private
-   * @type {boolean}
+   * @type {string}
    * @memberof IAUXAccountSettings
    */
   @state() private password?: string = '';
 
   /**
-   * determine if need to show loading indicator on buttons
+   * hold the password field error
    * @private
-   * @type {boolean}
+   * @type {string}
    * @memberof IAUXAccountSettings
    */
   @state() private passwordError?: string = '';
 
   @query('.password') private passwordField?: HTMLInputElement;
 
+  /**
+   * verify IA password to change you protected settings
+   *
+   * @param {Event} event
+   * @memberof AuthenticationTemplate
+   */
   async verifyIAPassword(event: Event) {
     preventDefault(event);
-    this.showLoadingIndicator = false;
 
+    if (!trimString(this.password as string)) {
+      this.passwordField?.focus();
+      this.passwordError = " * password can't be empty";
+      return;
+    }
+
+    this.showLoadingIndicator = true;
     const response = (await backendServiceHandler({
       action: 'verify-password',
       identifier: this.identifier,
@@ -87,29 +99,20 @@ export class AuthenticationTemplate extends LitElement {
       this.passwordField?.focus();
       this.passwordError = ' * invalid password';
     }
+
+    this.showLoadingIndicator = false;
   }
 
+  /**
+   * set password value to property
+   *
+   * @param {Event} e
+   * @memberof AuthenticationTemplate
+   */
   setPassword(e: Event) {
     const input = e.target as HTMLInputElement;
     this.password = input.value;
     this.passwordError = '';
-  }
-
-  render() {
-    return html`
-      <div class="authentication-template">
-        <form method="post" name="authentication-settings" autocomplete="off">
-          <div class="form-element">
-            <h2 @click=${() => console.log('dddd')}>Account settings</h2>
-          </div>
-          ${
-            this.authenticationType === 'ia'
-              ? this.iaPasswordVerification
-              : this.googleVerification
-          } 
-        </form>
-      </div
-    `;
   }
 
   get iaPasswordVerification() {
@@ -146,7 +149,6 @@ export class AuthenticationTemplate extends LitElement {
             ? 'pointer-none'
             : ''}"
           @click=${(e: Event) => {
-            this.showLoadingIndicator = true;
             this.verifyIAPassword(e);
           }}
         >
@@ -164,6 +166,11 @@ export class AuthenticationTemplate extends LitElement {
   get googleVerification() {
     return html`
       <p>Please sign in again to change protected settings.</p>
+      <div class="form-element footer">
+        <a @click=${() =>
+          (this.authenticationType =
+            'ia')}>Prefer to use your Internet Archive password?</a>
+      </div>
       <div class="third-party-login-cta">
         <ia-third-party-auth
           verifyUser="${this.googleConfig.verifyUser}"
@@ -175,16 +182,24 @@ export class AuthenticationTemplate extends LitElement {
           <div><div id="g_id_signin"></div></div>
         </ia-third-party-auth>
       </div>
-      <div class="form-element">
-      <h2>Account settings</h2>
-        <button>Prefer to use your Internet Archive password?</button>
-      </div>
     `;
   }
 
-  setAuth() {
-    console.log('dfsd');
-    // this.authenticationType = 'ia';
+  render() {
+    return html`
+      <div class="authentication-template">
+        <form method="post" name="authentication-settings" autocomplete="off">
+          <div class="form-element">
+            <h2>Account settings</h2>
+          </div>
+          ${
+            this.authenticationType === 'ia'
+              ? this.iaPasswordVerification
+              : this.googleVerification
+          }
+        </form>
+      </div
+    `;
   }
 
   /**
@@ -195,9 +210,17 @@ export class AuthenticationTemplate extends LitElement {
       AccountSettings,
       IAButtonStyles,
       css`
+        .authentication-template {
+          position: relative;
+        }
         .authentication-template a {
           display: inherit;
           width: fit-content;
+          cursor: pointer;
+        }
+        .footer {
+          position: absolute;
+          bottom: -50px;
         }
         .ia-button {
           width: 130px;

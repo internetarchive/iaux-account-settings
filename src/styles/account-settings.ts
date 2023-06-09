@@ -3,6 +3,7 @@ import { css } from 'lit';
 export const AccountSettings = css`
   .settings-template {
     display: flex;
+    flex-wrap: wrap;
   }
   .container {
     display: grid;
@@ -35,8 +36,9 @@ export const AccountSettings = css`
     margin-right: 5px;
     background: #000;
   }
-  .header button:disabled {
-    background: #8ca3bf;
+
+  button:disabled {
+    opacity: 0.5;
     cursor: auto;
   }
 
@@ -47,7 +49,7 @@ export const AccountSettings = css`
   input[type='email'],
   input[type='password'] {
     display: inline-block;
-    width: 60%;
+    width: 75%;
     padding: 6px 12px;
     font-size: 14px;
     line-height: 1.42857143;
@@ -76,6 +78,7 @@ export const AccountSettings = css`
     font-weight: bold;
     font-size: 1.4rem;
     margin-bottom: 8px;
+    width: fit-content;
   }
   .form-element label {
     font-weight: normal;
@@ -101,6 +104,7 @@ export const AccountSettings = css`
   .delete-link a {
     margin-top: 10px;
     text-decoration: none;
+    color: #bb0505;
   }
   .delete-link:hover {
     text-decoration: underline;
@@ -171,6 +175,7 @@ export const AccountSettings = css`
   .delete-section a {
     font-weight: normal;
     display: inherit;
+    width: fit-content;
   }
 
   .hide {

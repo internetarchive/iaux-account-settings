@@ -71,14 +71,6 @@ export interface IAAccountSettingsInterface {
   validateEmail(): Promise<void>;
 
   /**
-   * save the selected user profile picture
-   *
-   * @return {*}  {Promise<void>}
-   * @memberof IAAccountSettingsInterface
-   */
-  handleSaveFile(): Promise<void>;
-
-  /**
    * after validation, save the account setting
    *
    * @param {Event} e
