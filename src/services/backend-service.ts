@@ -1,5 +1,7 @@
 /* eslint-disable */
 
+import log from './log';
+
 /**
  * Helper to call loan service
  * @param {Object} options
@@ -15,7 +17,7 @@ export async function backendServiceHandler(options: any) {
     ...options,
   };
 
-  console.log(option);
+  log(option);
 
   let baseHost = option.baseHost;
   let response = {};
@@ -49,7 +51,7 @@ export async function backendServiceHandler(options: any) {
       body: formData,
     })
       .then(async response => {
-        console.log('response - ', response);
+        log('response - ', response);
 
         /**
          * return success response for /demo/ server...

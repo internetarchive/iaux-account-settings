@@ -21,6 +21,7 @@ const warningButtonBorderColor = css`#ec7939`;
 
 export const IAButtonStyles = css`
   .ia-button {
+    height: 3.5rem;
     min-height: 3rem;
     cursor: pointer;
     color: ${whiteColor};
@@ -36,7 +37,7 @@ export const IAButtonStyles = css`
     align-items: center;
     transition: all 0.1s ease 0s;
     vertical-align: middle;
-    padding: 0 2rem;
+    padding: 0 1rem;
     outline-color: ${whiteColor};
     outline-offset: -4px;
     user-select: none;

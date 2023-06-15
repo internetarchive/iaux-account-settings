@@ -88,7 +88,7 @@ export const AccountSettings = css`
   }
   input[type='checkbox'],
   input[type='radio'] {
-    vertical-align: baseline;
+    vertical-align: middle;
     margin-left: 0px;
   }
 

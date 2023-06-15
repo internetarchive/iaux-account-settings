@@ -28,6 +28,8 @@
     import '../dist/index.js';
     import MailingLists from '../dist/src/assets/config.js'
 
+    // googleConfig=${JSON.stringify({"verifyUser":"@neerajksharma453_gmail_com","csrftoken":"35cb39b7820612eb32432dc902e6687d","googleId":"41383750805-slra1gn7ge0bcc8ihpqnkk7hf0fo7dem.apps.googleusercontent.com","class":"focus-on-child-only","baseHost":"www-neeraj2.archive.org"})}
+
     render(
       html`
       <ia-account-settings
@@ -43,14 +45,23 @@
         selectedMailingLists=${JSON.stringify(['ml_best_of', 'ml_donors'])}
         profilePicture=${'../demo/default-preview.jpg'}
         loanHistoryFlag=${'public'}
-        ?googleLinked=${true}
-        googleConfig=${JSON.stringify({"verifyUser":"@neerajksharma453_gmail_com","csrftoken":"35cb39b7820612eb32432dc902e6687d","googleId":"41383750805-slra1gn7ge0bcc8ihpqnkk7hf0fo7dem.apps.googleusercontent.com","class":"focus-on-child-only","baseHost":"www-neeraj2.archive.org"})}
+        linkedProviders=${JSON.stringify(['google'])}
         profileCsrfToken=${'sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5'}
         updatedFields=${{
           "screenname": "Your screen name has been updated successfully.",
           "mailing_lists": "Mailing lists has been updated!"
         }}
-      >
+      ><div slot="ia-google-login" class="third-party-login-cta">
+        <ia-third-party-auth
+          verifyUser="this.lookingToAuth = false;"
+          csrftoken="35cb39b7820612eb32432dc902e6687d"
+          googleId="41383750805-slra1gn7ge0bcc8ihpqnkk7hf0fo7dem.apps.googleusercontent.com"
+          class="focus-on-child-only"
+          baseHost="www-neeraj2.archive.org"
+        >
+          <div><div id="g_id_signin"></div></div>
+        </ia-third-party-auth>
+      </div>
       </ia-account-settings>`,
 
       document.querySelector('#demo')

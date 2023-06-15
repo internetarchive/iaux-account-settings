@@ -29,6 +29,10 @@ export type SelectedMailingListsModel = {
   [key: string]: any;
 };
 
+export type LinkedProvidersModel = {
+  [key: string]: any;
+};
+
 export type ResponseModel = {
   success?: boolean;
   error?: string;

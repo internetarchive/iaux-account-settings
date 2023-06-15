@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { property, customElement, state, query } from 'lit/decorators.js';
 import { backendServiceHandler } from './services/backend-service';
+import log from './services/log';
 import { togglePassword, preventDefault, trimString } from './services/util';
 import { AccountSettings } from './styles/account-settings';
 import { IAButtonStyles } from './styles/ia-buttons';
@@ -18,7 +19,7 @@ import type {
   ResponseModel,
   MailingListsModel,
   SelectedMailingListsModel,
-  GoogleConfigModel,
+  LinkedProvidersModel,
 } from './models';
 
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
@@ -70,15 +71,7 @@ export class IAAccountSettings
    * contain boolean status about google account is linked
    * @type {Boolean}
    */
-  @property({ type: Boolean }) googleLinked: Boolean = false;
-
-  /**
-   * google auth config
-   *
-   * @type {GoogleConfigModel}
-   * @memberof IAAccountSettings
-   */
-  @property({ type: Object }) googleConfig: GoogleConfigModel = {};
+  @property({ type: Object }) linkedProviders: LinkedProvidersModel = {};
 
   /**
    * contain boolean status about google account is linked
@@ -99,7 +92,7 @@ export class IAAccountSettings
    * @type {Boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private lookingToAuth?: Boolean = true;
+  @state() lookingToAuth?: Boolean = true;
 
   /**
    * contains error data for form fields
@@ -180,18 +173,29 @@ export class IAAccountSettings
   private passwordLengthMessage = `The password needs to be between ${this.passwordMinLength} and ${this.passwordMaxLength} characters long.`;
 
   private userAvatarSuccessMsg =
-    'Your profile picture uploaded succesfully, it may take few seconds to reflect.';
+    'Your profile picture has been updated. Please allow 5 minutes for the change to take effect.';
 
   private oldUserData: UserModel = {
     email: '',
     screenname: '',
   };
 
+  private tempLinkedProviders: LinkedProvidersModel = [];
+
+  private unlinkProviders: LinkedProvidersModel = [];
+
   firstUpdated() {
     this.oldUserData = Object.assign(this.oldUserData, {
       email: this.userData.email,
       screenname: this.userData.screenname,
     });
+
+    // temp array to check if linkedProviders is changed
+    this.tempLinkedProviders = this.tempLinkedProviders.concat(
+      this.linkedProviders
+    );
+
+    this.bindEvents();
   }
 
   updated(changed: PropertyValues) {
@@ -203,14 +207,26 @@ export class IAAccountSettings
       this.showLoadingIndicator = false;
       this.updatedFields = {};
     }
+
+    if (changed.has('fieldsError') && this.hasFieldError()) {
+      log('buttton keep disabled');
+      this.saveButtonDisabled = true;
+    }
+  }
+
+  bindEvents() {
+    // check if google auth authentication completed, show setting page
+    document.addEventListener('IAThirdPartyAuth:verifiedLogin', () => {
+      log('IAThirdPartyAuth:verifiedLogin');
+      this.lookingToAuth = false;
+    });
   }
 
   render() {
-    const keepAuth = localStorage.getItem('keep-authenticated');
     return html`
       <main id="maincontent">
         <div class="container">
-          ${this.lookingToAuth && keepAuth !== 'yes'
+          ${this.lookingToAuth
             ? this.verificationTemplate
             : this.settingsTemplate}
         </div>
@@ -245,7 +261,7 @@ export class IAAccountSettings
   setBorrowHistory(e: Event) {
     const input = e.target as HTMLInputElement;
     this.loanHistoryFlag = input.checked ? 'public' : 'private';
-    this.saveButtonDisabled = false;
+    this.changeSaveButtonState();
   }
 
   /** @inheritdoc */
@@ -260,7 +276,28 @@ export class IAAccountSettings
       this.selectedMailingLists.splice(index, 1);
     }
 
-    this.saveButtonDisabled = false;
+    this.changeSaveButtonState();
+  }
+
+  setLinkedProvider(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const { provider } = input.dataset;
+    if (!provider) {
+      return;
+    }
+
+    if (input.checked) {
+      const index = this.unlinkProviders?.indexOf(provider);
+      this.unlinkProviders?.splice(index, 1);
+    } else {
+      this.unlinkProviders?.push(provider);
+    }
+
+    this.changeSaveButtonState();
+  }
+
+  changeSaveButtonState() {
+    this.saveButtonDisabled = !!this.hasFieldError();
   }
 
   /** @inheritdoc */
@@ -275,18 +312,13 @@ export class IAAccountSettings
       errorFields = { ...this.fieldsError, password: '' };
     }
 
-    this.fieldsError = errorFields;
     this.saveButtonDisabled = false;
+    this.fieldsError = errorFields;
   }
 
   /** @inheritdoc */
   hasFieldError() {
-    /* eslint-disable-next-line array-callback-return, consistent-return */
-    return Object.values(this.fieldsError).every(value => {
-      if (value !== '') {
-        return true;
-      }
-    });
+    return Object.values(this.fieldsError).some(value => value !== '');
   }
 
   /** @inheritdoc */
@@ -302,7 +334,6 @@ export class IAAccountSettings
       error = 'This screen name is already being used by another user.';
     }
 
-    if (error) this.saveButtonDisabled = true;
     this.fieldsError = { ...this.fieldsError, screenname: error };
   }
 
@@ -322,7 +353,6 @@ export class IAAccountSettings
       error = 'This email address is already being used by another user.';
     }
 
-    if (error) this.saveButtonDisabled = true;
     this.fieldsError = { ...this.fieldsError, email: error };
   }
 
@@ -334,7 +364,6 @@ export class IAAccountSettings
       this.userData.password.length > this.passwordMaxLength;
 
     if (this.userData.password && invalidPassword) {
-      this.saveButtonDisabled = true;
       this.fieldsError = {
         ...this.fieldsError,
         password: this.passwordLengthMessage,
@@ -382,11 +411,7 @@ export class IAAccountSettings
     await this.validateEmail();
     await this.validatePassword();
 
-    // check if user selected different user-avatar,
-    // if yes, dispatch an event to ia-pic-uploader component
-    if (this.fileInput?.files?.length) {
-      document.dispatchEvent(new CustomEvent('saveProfileAvatar'));
-    }
+    await this.emitExteranlEvents();
 
     // if don't have any active error, just procced to save settings
     if (!this.hasFieldError()) {
@@ -414,7 +439,7 @@ export class IAAccountSettings
    * @memberof IAAccountSettings
    */
   profilePictureUploaded() {
-    this.saveButtonDisabled = false;
+    this.saveButtonDisabled = true;
 
     this.updatedFields = {
       ...this.updatedFields,
@@ -424,12 +449,32 @@ export class IAAccountSettings
     } as ResponseModel;
   }
 
+  emitExteranlEvents() {
+    // if user selected new avatar, dispatch an event to ia-pic-uploader component
+    if (this.fileInput?.files?.length) {
+      log('profile avatar should be updated!');
+      document.dispatchEvent(new Event('saveProfileAvatar'));
+    }
+
+    // if user want to unlinkProvider, dispatch an event to ia-third-party-auth
+    if (this.unlinkProviders.length) {
+      log(
+        'linked provider should be unlinked!',
+        this.unlinkProviders.toString()
+      );
+      document.dispatchEvent(
+        new CustomEvent('IAThirdPartyAuth:unlinkProvider', {
+          detail: this.unlinkProviders.toString(),
+        })
+      );
+    }
+  }
+
   get verificationTemplate() {
     return html` <authentication-template
-      authenticationType="${this.googleLinked ? 'google' : 'ia'}"
+      authenticationType="${!this.linkedProviders.length ? 'ia' : ''}"
       identifier=${this.userData.identifier}
       email=${this.userData.email}
-      googleConfig=${JSON.stringify(this.googleConfig)}
       @ia-authenticated=${() => {
         this.lookingToAuth = false;
         try {
@@ -438,7 +483,9 @@ export class IAAccountSettings
           /** it's ok to empty */
         }
       }}
-    ></authentication-template>`;
+    >
+      <slot name="ia-google-login"></slot>
+    </authentication-template>`;
   }
 
   get settingsTemplate() {
@@ -477,9 +524,10 @@ export class IAAccountSettings
           <ia-pic-uploader
             identifier=${this.userData.identifier}
             picture="${this.profilePicture}"
+            ?lookingAtMyAccount=${true}
             type="compact"
             @fileChanged=${() => {
-              this.saveButtonDisabled = false;
+              this.changeSaveButtonState();
             }}
             @fileUploaded=${() => {
               this.profilePictureUploaded();
@@ -568,7 +616,7 @@ export class IAAccountSettings
           <label for="linked-account"
             >Linked 3rd party accounts (e.g. Google)</label
           >
-          ${this.googleLinked
+          ${this.linkedProviders.length
             ? this.linkedAccountTemplate
             : 'You have no linked accounts'}
         </div>
@@ -620,13 +668,17 @@ export class IAAccountSettings
   }
 
   get linkedAccountTemplate() {
-    return html` <input
-        name="linked-account"
-        id="linked-account"
-        type="checkbox"
-        .checked="${this.googleLinked}"
-      />
-      <label for="linked-account"> Google</label>`;
+    return Object.values(this.linkedProviders)?.map(
+      provider => html` <input
+          name="ia-${provider}"
+          id="ia-${provider}"
+          type="checkbox"
+          data-provider=${provider}
+          .checked="${this.linkedProviders?.includes(provider)}"
+          @click=${this.setLinkedProvider}
+        />
+        <label for="ia-${provider}"> ${provider}</label>`
+    );
   }
 
   get loadingIndicatorTemplate() {

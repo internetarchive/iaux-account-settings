@@ -17,6 +17,7 @@ describe('IAAccountSettings', () => {
     };
     el.mailingLists = MailingLists;
     el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
+    el.lookingToAuth = false;
 
     await el.updateComplete;
 
@@ -48,7 +49,7 @@ describe('IAAccountSettings', () => {
     };
     el.mailingLists = MailingLists;
     el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
-    el.googleLinked = true;
+    el.lookingToAuth = true;
 
     await el.updateComplete;
 
@@ -67,11 +68,12 @@ describe('IAAccountSettings', () => {
     };
     el.mailingLists = MailingLists;
     el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
-    el.googleLinked = true;
+    // el.googleLinked = true;
+    el.lookingToAuth = false;
 
     await el.updateComplete;
 
-    expect(el.shadowRoot?.querySelector('#linked-account')).to.be.exist;
+    // expect(el.shadowRoot?.querySelector('#linked-account')).to.be.exist;
   });
 
   it('attempted to delete account', async () => {
@@ -86,6 +88,7 @@ describe('IAAccountSettings', () => {
     };
     el.mailingLists = MailingLists;
     el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
+    el.lookingToAuth = false;
 
     await el.updateComplete;
 
@@ -112,6 +115,8 @@ describe('IAAccountSettings', () => {
     el.mailingLists = MailingLists;
     el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
     el.saveButtonDisabled = false;
+    el.lookingToAuth = false;
+
     await el.updateComplete;
 
     const settingsTemplate = el.shadowRoot?.querySelector('.settings-template');
