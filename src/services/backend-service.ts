@@ -34,7 +34,10 @@ export async function backendServiceHandler(options: any) {
     formData.append('delete-confirm', option.confirmDelete);
   } else if (option.action === 'save-account') {
     formData.append('userData', JSON.stringify(option.userData));
-    formData.append('selectedMailingLists', option.selectedMailingLists);
+    formData.append(
+      'selectedMailingLists',
+      JSON.stringify(option.selectedMailingLists)
+    );
     formData.append('loanHistoryFlag', option.loanHistoryFlag);
   } else if (option.action === 'save-file') {
     formData = option.file;
@@ -50,7 +53,7 @@ export async function backendServiceHandler(options: any) {
       headers: option.headers,
       body: formData,
     })
-      .then(async response => {
+      .then(response => {
         log('response - ', response);
 
         /**
@@ -81,9 +84,9 @@ export async function backendServiceHandler(options: any) {
          * The response is a Response instance.
          * You parse the data into a useable format using `.json()`
          */
-        return await response.json();
+        return response.json();
       })
-      .then(async data => {
+      .then(data => {
         response = data;
       });
   } catch (error) {}

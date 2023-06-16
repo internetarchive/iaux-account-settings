@@ -15,6 +15,7 @@
 
     ia-account-settings {
       display: block;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
   </style>
 </head>
@@ -26,29 +27,31 @@
   <script type="module">
     import { html, render } from 'lit';
     import '../dist/index.js';
-    import MailingLists from '../dist/src/assets/config.js'
+    import mailingLists from '../dist/src/assets/config.js'
 
-    // googleConfig=${JSON.stringify({"verifyUser":"@neerajksharma453_gmail_com","csrftoken":"35cb39b7820612eb32432dc902e6687d","googleId":"41383750805-slra1gn7ge0bcc8ihpqnkk7hf0fo7dem.apps.googleusercontent.com","class":"focus-on-child-only","baseHost":"www-neeraj2.archive.org"})}
+    const userData = {
+      identifier: '@neerajksharma453_gmail_com',
+      screenname: 'neeraj-k-sharma',
+      email: 'neerajksharma453@gmail.com',
+      password: '',
+      isAdmin: true,
+    };
+
+    const selectedMailingLists = { ml_best_of: true, ml_donors: false };
+    const linkedProvider = { google: true };
 
     render(
       html`
       <ia-account-settings
-        userData='${JSON.stringify({
-          identifier: '@neeraj-archive',
-          screenname: 'neeraj archive',
-          email: 'neeraj@archive.org',
-          password: 'neerajPassword',
-          isAdmin: false,
-          authRequired: false,
-        })}'
-        mailingLists=${JSON.stringify(MailingLists)}
-        selectedMailingLists=${JSON.stringify(['ml_best_of', 'ml_donors'])}
-        profilePicture=${'../demo/default-preview.jpg'}
-        loanHistoryFlag=${'public'}
-        linkedProviders=${JSON.stringify(['google'])}
-        profileCsrfToken=${'sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5'}
-        updatedFields=${{
-          "screenname": "Your screen name has been updated successfully.",
+        .userData="${userData}"
+        .mailingLists="${mailingLists}"
+        .selectedMailingLists=${selectedMailingLists}
+        .profilePicture=${'../demo/default-preview.jpg'}
+        .loanHistoryFlag=${'public'}
+        .linkedProviders="${linkedProvider}"
+        .profileCsrfToken=${'sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5'}
+        .updatedFields=${{
+          "screenname": "123Your screen name has been updated successfully.",
           "mailing_lists": "Mailing lists has been updated!"
         }}
       ><div slot="ia-google-login" class="third-party-login-cta">

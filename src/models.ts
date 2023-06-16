@@ -1,10 +1,3 @@
-export interface FileModel {
-  name?: '';
-  size?: '';
-  type?: '';
-  lastModified?: '';
-}
-
 export type UserModel = {
   isAdmin?: boolean;
   picture?: string;
@@ -21,16 +14,25 @@ export type ErrorModel = {
   password?: string;
 };
 
+export interface MailingList {
+  key: string;
+  name: string;
+  interest_id: string;
+  selected_by_default: boolean;
+  public: boolean;
+  short_desc: string;
+}
+
 export type MailingListsModel = {
-  [key: string]: object;
+  [key: string]: MailingList;
 };
 
 export type SelectedMailingListsModel = {
-  [key: string]: any;
+  [key: string]: boolean;
 };
 
 export type LinkedProvidersModel = {
-  [key: string]: any;
+  [key: string]: boolean;
 };
 
 export type ResponseModel = {

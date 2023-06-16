@@ -184,7 +184,7 @@ export const AccountSettings = css`
 
   .password-icon {
     vertical-align: middle;
-    padding: 5px;
+    padding: 7px 4px;
     cursor: pointer;
     border-radius: 0px 5px 5px 0px;
     border: 0;

@@ -9,7 +9,11 @@ import {
 import { property, customElement, state, query } from 'lit/decorators.js';
 import { backendServiceHandler } from './services/backend-service';
 import log from './services/log';
-import { togglePassword, preventDefault, trimString } from './services/util';
+import {
+  togglePassword,
+  preventDefaultAndStopEvent,
+  trimString,
+} from './services/util';
 import { AccountSettings } from './styles/account-settings';
 import { IAButtonStyles } from './styles/ia-buttons';
 import type { IAAccountSettingsInterface } from './ia-account-settings.interface';
@@ -42,6 +46,7 @@ export class IAAccountSettings
   /**
    * active mailing lists available
    *
+   * @type {MailingListsModel}
    * @memberof IAUXAccountSettings
    */
   @property({ type: Object }) mailingLists?: MailingListsModel;
@@ -57,42 +62,44 @@ export class IAAccountSettings
 
   /**
    * contain boolean status about google account is linked
+   *
    * @type {String}
+   * @memberof IAUXAccountSettings
    */
   @property({ type: String }) profilePicture: String = '';
 
   /**
    * contain boolean status about google account is linked
+   *
    * @type {String | Boolean}
+   * @memberof IAUXAccountSettings
    */
   @property({ type: String }) loanHistoryFlag: String | Boolean = '';
 
   /**
    * contain boolean status about google account is linked
-   * @type {Boolean}
+   *
+   * @type {LinkedProvidersModel}
+   * @memberof IAUXAccountSettings
    */
   @property({ type: Object }) linkedProviders: LinkedProvidersModel = {};
 
   /**
    * contain boolean status about google account is linked
+   *
    * @type {String}
+   * @memberof IAUXAccountSettings
    */
   @property({ type: String }) profileCsrfToken: String = '';
 
   /**
    * contain fileSelect input field
-   * @type {HTMLInputElement}
-   */
-  @state() private fileInput?: HTMLInputElement;
-
-  /**
-   * determine if want to show authenticate page
    *
    * @private
-   * @type {Boolean}
+   * @type {HTMLInputElement}
    * @memberof IAUXAccountSettings
    */
-  @state() lookingToAuth?: Boolean = true;
+  @state() private fileInput?: HTMLInputElement;
 
   /**
    * contains error data for form fields
@@ -102,14 +109,6 @@ export class IAAccountSettings
    * @memberof IAUXAccountSettings
    */
   @state() private fieldsError: ErrorModel = {};
-
-  /**
-   * determine if need to show loading indicator on buttons
-   * @private
-   * @type {Boolean}
-   * @memberof IAUXAccountSettings
-   */
-  @state() showLoadingIndicator?: Boolean;
 
   /**
    * open delete form
@@ -130,6 +129,15 @@ export class IAAccountSettings
   @state() private confirmDelete?: Boolean = false;
 
   /**
+   * object that contains updated fields data/text
+   *
+   * @private
+   * @type {Object}
+   * @memberof IAAccountSettings
+   */
+  @state() private updatedFields?: ResponseModel = {};
+
+  /**
    * determine if need to disable save button
    *
    * @private
@@ -139,13 +147,20 @@ export class IAAccountSettings
   @state() saveButtonDisabled?: Boolean = true;
 
   /**
-   * object that contains updated fields data/text
+   * determine if want to show authenticate page
    *
-   * @private
-   * @type {Object}
-   * @memberof IAAccountSettings
+   * @type {Boolean}
+   * @memberof IAUXAccountSettings
    */
-  @state() private updatedFields?: ResponseModel = {};
+  @state() lookingToAuth?: Boolean = false;
+
+  /**
+   * determine if need to show loading indicator on buttons
+   *
+   * @type {Boolean}
+   * @memberof IAUXAccountSettings
+   */
+  @state() showLoadingIndicator?: Boolean;
 
   /**
    * since we moved pic upload feature in separate component,
@@ -180,20 +195,14 @@ export class IAAccountSettings
     screenname: '',
   };
 
-  private tempLinkedProviders: LinkedProvidersModel = [];
-
-  private unlinkProviders: LinkedProvidersModel = [];
+  // we need to store the provider user wants to unlink from account
+  private unlinkProviders: LinkedProvidersModel = {};
 
   firstUpdated() {
     this.oldUserData = Object.assign(this.oldUserData, {
       email: this.userData.email,
       screenname: this.userData.screenname,
     });
-
-    // temp array to check if linkedProviders is changed
-    this.tempLinkedProviders = this.tempLinkedProviders.concat(
-      this.linkedProviders
-    );
 
     this.bindEvents();
   }
@@ -270,10 +279,9 @@ export class IAAccountSettings
     const fieldName = input.name;
 
     if (input.checked) {
-      this.selectedMailingLists.push(fieldName);
+      this.selectedMailingLists[fieldName] = true;
     } else {
-      const index = this.selectedMailingLists.indexOf(fieldName);
-      this.selectedMailingLists.splice(index, 1);
+      this.selectedMailingLists[fieldName] = false;
     }
 
     this.changeSaveButtonState();
@@ -287,10 +295,9 @@ export class IAAccountSettings
     }
 
     if (input.checked) {
-      const index = this.unlinkProviders?.indexOf(provider);
-      this.unlinkProviders?.splice(index, 1);
+      this.unlinkProviders[provider] = false;
     } else {
-      this.unlinkProviders?.push(provider);
+      this.unlinkProviders[provider] = true;
     }
 
     this.changeSaveButtonState();
@@ -328,7 +335,7 @@ export class IAAccountSettings
 
     if (this.userData.screenname === '') {
       error = 'Screen name can not be empty.';
-    } else if (this.userData.screenname?.match(/[\\]/gm)) {
+    } else if (this.userData.screenname?.includes('\\')) {
       error = 'Invalid screen name';
     } else if ((await this.isScreennameAvailable()) === false) {
       error = 'This screen name is already being used by another user.';
@@ -349,7 +356,7 @@ export class IAAccountSettings
       error = 'Email address can not be empty.';
     } else if (!this.userData.email?.match(emailRegex)) {
       error = 'Email address contains invalid characters and/or whitespace.';
-    } else if (await !this.isEmailAvailable()) {
+    } else if (!(await this.isEmailAvailable())) {
       error = 'This email address is already being used by another user.';
     }
 
@@ -405,13 +412,15 @@ export class IAAccountSettings
   async saveAccountSettings(event: Event) {
     this.showLoadingIndicator = true;
     this.saveButtonDisabled = true;
-    preventDefault(event);
+    preventDefaultAndStopEvent(event);
 
     await this.validateScreenname();
     await this.validateEmail();
     await this.validatePassword();
 
-    await this.emitExteranlEvents();
+    // dispatch enternal events
+    this.emitProfileAvatarSaveEvent();
+    this.emitUnlinkProviderEvent();
 
     // if don't have any active error, just procced to save settings
     if (!this.hasFieldError()) {
@@ -449,25 +458,37 @@ export class IAAccountSettings
     } as ResponseModel;
   }
 
-  emitExteranlEvents() {
-    // if user selected new avatar, dispatch an event to ia-pic-uploader component
+  /**
+   * if user selector new profile avatar, we need to dispatch event to ia-pic-uploader component
+   */
+  emitProfileAvatarSaveEvent() {
     if (this.fileInput?.files?.length) {
       log('profile avatar should be updated!');
       document.dispatchEvent(new Event('saveProfileAvatar'));
     }
+  }
+
+  /**
+   * dispatch event to unlink provider at ia-third-party-auth component
+   */
+  emitUnlinkProviderEvent() {
+    if (Object.keys(this.unlinkProviders).length === 0) return nothing;
 
     // if user want to unlinkProvider, dispatch an event to ia-third-party-auth
-    if (this.unlinkProviders.length) {
-      log(
-        'linked provider should be unlinked!',
-        this.unlinkProviders.toString()
-      );
+    const provider = Object.keys(this.unlinkProviders).filter(
+      key => key ?? nothing
+    );
+
+    if (provider) {
+      log(`${provider} provider should be unlinked!`);
       document.dispatchEvent(
         new CustomEvent('IAThirdPartyAuth:unlinkProvider', {
-          detail: this.unlinkProviders.toString(),
+          detail: { provider },
         })
       );
     }
+
+    return nothing;
   }
 
   get verificationTemplate() {
@@ -580,12 +601,15 @@ export class IAAccountSettings
             @input=${this.setPassword}
             @blur=${this.validatePassword}
           />
-          <img
+          <input
+            type="image"
             class="password-icon"
             src="https://archive.org/images/eye-crossed.svg"
-            @click=${(e: Event) =>
-              togglePassword(e, this.passwordField as HTMLInputElement)}
             alt="View text"
+            @click=${(e: Event) => {
+              preventDefaultAndStopEvent(e);
+              togglePassword(e, this.passwordField as HTMLInputElement);
+            }}
           />
           <span class="error-field">${this.fieldsError.password}</span>
         </div>
@@ -616,7 +640,7 @@ export class IAAccountSettings
           <label for="linked-account"
             >Linked 3rd party accounts (e.g. Google)</label
           >
-          ${this.linkedProviders.length
+          ${Object.keys(this.linkedProviders).length
             ? this.linkedAccountTemplate
             : 'You have no linked accounts'}
         </div>
@@ -651,14 +675,14 @@ export class IAAccountSettings
   get mailingListsTemplate() {
     if (!this.mailingLists) return nothing;
 
-    return Object.entries(this.mailingLists as object).map(list => {
-      if (!list[1].public) return html``;
+    return Object.entries(this.mailingLists).map(list => {
+      if (!list[1].public) return nothing;
 
       return html`<input
           type="checkbox"
           id="${list[1].key}"
           name="${list[1].key}"
-          .checked=${this.selectedMailingLists?.includes(list[1].key as string)}
+          .checked=${this.selectedMailingLists[list[1].key] === true}
           @click=${this.setMailingList}
         />
         <label for="${list[1].key}">
@@ -668,17 +692,20 @@ export class IAAccountSettings
   }
 
   get linkedAccountTemplate() {
-    return Object.values(this.linkedProviders)?.map(
-      provider => html` <input
+    return Object.keys(this.linkedProviders)?.map(provider => {
+      if (this.linkedProviders[provider] === false)
+        return html`You have no linked accounts`;
+
+      return html` <input
           name="ia-${provider}"
           id="ia-${provider}"
           type="checkbox"
           data-provider=${provider}
-          .checked="${this.linkedProviders?.includes(provider)}"
+          .checked=${this.linkedProviders[provider] === true}
           @click=${this.setLinkedProvider}
         />
-        <label for="ia-${provider}"> ${provider}</label>`
-    );
+        <label for="ia-${provider}"> ${provider}</label>`;
+    });
   }
 
   get loadingIndicatorTemplate() {
@@ -783,9 +810,7 @@ export class IAAccountSettings
         :host {
           display: block;
           padding: 25px;
-          color: var(--iaux-account-settings-text-color, #000);
           font-size: 1.4rem;
-          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
           outline: none;
           border: none;
         }

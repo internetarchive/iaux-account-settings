@@ -5,7 +5,11 @@ import { IAButtonStyles } from '../styles/ia-buttons';
 import { AccountSettings } from '../styles/account-settings';
 import type { ResponseModel } from '../models';
 import { backendServiceHandler } from '../services/backend-service';
-import { togglePassword, preventDefault, trimString } from '../services/util';
+import {
+  togglePassword,
+  preventDefaultAndStopEvent,
+  trimString,
+} from '../services/util';
 
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
 
@@ -69,7 +73,7 @@ export class AuthenticationTemplate extends LitElement {
    * @memberof AuthenticationTemplate
    */
   async verifyIAPassword(event: Event) {
-    preventDefault(event);
+    preventDefaultAndStopEvent(event);
 
     if (!trimString(this.password as string)) {
       this.passwordField?.focus();
@@ -98,11 +102,11 @@ export class AuthenticationTemplate extends LitElement {
   /**
    * set password value to property
    *
-   * @param {Event} e
+   * @param {Event} event
    * @memberof AuthenticationTemplate
    */
-  setPassword(e: Event) {
-    const input = e.target as HTMLInputElement;
+  setPassword(event: Event) {
+    const input = event.target as HTMLInputElement;
     this.password = input.value;
     this.passwordError = '';
   }
@@ -120,12 +124,15 @@ export class AuthenticationTemplate extends LitElement {
           required
           @input=${this.setPassword}
         />
-        <img
+        <input
+          type="image"
           class="password-icon"
           src="https://archive.org/images/eye-crossed.svg"
-          @click=${(e: Event) =>
-            togglePassword(e, this.passwordField as HTMLInputElement)}
-          alt="Hide text"
+          alt="View text"
+          @click=${(event: Event) => {
+            preventDefaultAndStopEvent(event);
+            togglePassword(event, this.passwordField as HTMLInputElement);
+          }}
         />
         <span class="error-field">${this.passwordError}</span>
         <a
@@ -140,8 +147,8 @@ export class AuthenticationTemplate extends LitElement {
           class="ia-button primary ${this.showLoadingIndicator
             ? 'pointer-none'
             : ''}"
-          @click=${(e: Event) => {
-            this.verifyIAPassword(e);
+          @click=${(event: Event) => {
+            this.verifyIAPassword(event);
           }}
         >
           ${this.showLoadingIndicator
@@ -155,7 +162,7 @@ export class AuthenticationTemplate extends LitElement {
     `;
   }
 
-  get googleVerification() {
+  get providerVerification() {
     return html`
       <p>Please sign in again to change protected settings.</p>
       <div class="form-element footer">
@@ -177,7 +184,7 @@ export class AuthenticationTemplate extends LitElement {
           ${
             this.authenticationType === 'ia'
               ? this.iaPasswordVerification
-              : this.googleVerification
+              : this.providerVerification
           }
         </form>
       </div

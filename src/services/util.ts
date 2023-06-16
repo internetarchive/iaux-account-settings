@@ -29,7 +29,7 @@ export async function togglePassword(
  * @export
  * @param {Event} e
  */
-export async function preventDefault(e: Event) {
+export function preventDefaultAndStopEvent(e: Event) {
   e?.preventDefault();
   e?.stopPropagation();
 }

@@ -2,34 +2,34 @@ export interface IAAccountSettingsInterface {
   /**
    * set screenname in UserModel
    *
-   * @param {Event} e
+   * @param {Event} event
    * @memberof IAAccountSettingsInterface
    */
-  setScreenname(e: Event): void;
+  setScreenname(event: Event): void;
 
   /**
    * set email in UserModel
    *
-   * @param {Event} e
+   * @param {Event} event
    * @memberof IAAccountSettingsInterface
    */
-  setEmail(e: Event): void;
+  setEmail(event: Event): void;
 
   /**
    * set password in UserModel
    *
-   * @param {Event} e
+   * @param {Event} event
    * @memberof IAAccountSettingsInterface
    */
-  setPassword(e: Event): void;
+  setPassword(event: Event): void;
 
   /**
    * set user loan history visiblility preferences
    *
-   * @param {Event} e
+   * @param {Event} event
    * @memberof IAAccountSettingsInterface
    */
-  setBorrowHistory(e: Event): void;
+  setBorrowHistory(event: Event): void;
 
   /**
    * check if fields has errors
@@ -41,6 +41,7 @@ export interface IAAccountSettingsInterface {
 
   /**
    * reset error fields
+   *
    * @param {string} value
    * @memberof IAAccountSettingsInterface
    */
@@ -73,9 +74,9 @@ export interface IAAccountSettingsInterface {
   /**
    * after validation, save the account setting
    *
-   * @param {Event} e
+   * @param {Event} event
    * @return {*}  {Promise<void>}
    * @memberof IAAccountSettingsInterface
    */
-  saveAccountSettings(e: Event): Promise<void>;
+  saveAccountSettings(event: Event): Promise<void>;
 }

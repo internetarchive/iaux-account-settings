@@ -16,6 +16,7 @@
     "rootDir": "./",
     "declaration": true,
     "importsNotUsedAsValues": "remove",
+    "noImplicitAny": false,
     "plugins": [
       {
         "name": "ts-lit-plugin"

@@ -2,7 +2,7 @@ import { html, fixture, expect } from '@open-wc/testing';
 import { stub } from 'sinon';
 import type { IAAccountSettings } from '../src/ia-account-settings';
 import '../src/ia-account-settings';
-import MailingLists from '../src/assets/config';
+import mailingLists from '../src/assets/mailing-lists';
 
 describe('IAAccountSettings', () => {
   it('default user data/fields rendered on page', async () => {
@@ -15,8 +15,8 @@ describe('IAAccountSettings', () => {
       email: 'abc@gmail.com',
       isAdmin: true,
     };
-    el.mailingLists = MailingLists;
-    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
+    el.mailingLists = mailingLists;
+    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
     el.lookingToAuth = false;
 
     await el.updateComplete;
@@ -47,8 +47,8 @@ describe('IAAccountSettings', () => {
       email: 'abc@gmail.com',
       isAdmin: true,
     };
-    el.mailingLists = MailingLists;
-    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
+    el.mailingLists = mailingLists;
+    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
     el.lookingToAuth = true;
 
     await el.updateComplete;
@@ -66,9 +66,9 @@ describe('IAAccountSettings', () => {
       email: 'abc@gmail.com',
       isAdmin: true,
     };
-    el.mailingLists = MailingLists;
-    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
-    // el.googleLinked = true;
+    el.mailingLists = mailingLists;
+    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
+    el.linkedProviders = { goolge: true };
     el.lookingToAuth = false;
 
     await el.updateComplete;
@@ -86,8 +86,8 @@ describe('IAAccountSettings', () => {
       email: 'abc@gmail.com',
       isAdmin: true,
     };
-    el.mailingLists = MailingLists;
-    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
+    el.mailingLists = mailingLists;
+    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
     el.lookingToAuth = false;
 
     await el.updateComplete;
@@ -112,8 +112,8 @@ describe('IAAccountSettings', () => {
       email: 'abc@gmail.com',
       isAdmin: true,
     };
-    el.mailingLists = MailingLists;
-    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
+    el.mailingLists = mailingLists;
+    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
     el.saveButtonDisabled = false;
     el.lookingToAuth = false;
 
