@@ -74,7 +74,7 @@ export async function backendServiceHandler(options: any) {
               success: true,
               updatedFields: {
                 screenname: 'Your screen name has been updated successfully.',
-                mailing_lists: 'Mailing lists has been updated.',
+                mailing_lists: 'Mailing lists has been updated!',
               },
             };
           }

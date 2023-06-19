@@ -334,11 +334,11 @@ export class IAAccountSettings
     this.userData.screenname = trimString(this.userData.screenname as string);
 
     if (this.userData.screenname === '') {
-      error = 'Screen name can not be empty.';
+      error = 'The screen name needs to be between 3 and 127 characters long.';
     } else if (this.userData.screenname?.includes('\\')) {
-      error = 'Invalid screen name';
+      error = 'The screen name needs to be between 3 and 127 characters long.';
     } else if ((await this.isScreennameAvailable()) === false) {
-      error = 'This screen name is already being used by another user.';
+      error = `The screen name ${this.userData.screenname} is already taken.`;
     }
 
     this.fieldsError = { ...this.fieldsError, screenname: error };
@@ -353,11 +353,11 @@ export class IAAccountSettings
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
     if (this.userData.email === '') {
-      error = 'Email address can not be empty.';
+      error = 'This does not appear to be a valid email address.';
     } else if (!this.userData.email?.match(emailRegex)) {
-      error = 'Email address contains invalid characters and/or whitespace.';
+      error = 'This does not appear to be a valid email address.';
     } else if (!(await this.isEmailAvailable())) {
-      error = 'This email address is already being used by another user.';
+      error = `${this.userData.email} is already taken.`;
     }
 
     this.fieldsError = { ...this.fieldsError, email: error };
