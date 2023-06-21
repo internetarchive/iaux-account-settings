@@ -16,7 +16,7 @@ describe('IAAccountSettings', () => {
       isAdmin: true,
     };
     el.mailingLists = mailingLists;
-    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
+    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
     el.lookingToAuth = false;
 
     await el.updateComplete;
@@ -48,7 +48,7 @@ describe('IAAccountSettings', () => {
       isAdmin: true,
     };
     el.mailingLists = mailingLists;
-    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
+    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
     el.lookingToAuth = true;
 
     await el.updateComplete;
@@ -67,7 +67,7 @@ describe('IAAccountSettings', () => {
       isAdmin: true,
     };
     el.mailingLists = mailingLists;
-    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
+    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
     el.linkedProviders = { goolge: true };
     el.lookingToAuth = false;
 
@@ -87,7 +87,7 @@ describe('IAAccountSettings', () => {
       isAdmin: true,
     };
     el.mailingLists = mailingLists;
-    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
+    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
     el.lookingToAuth = false;
 
     await el.updateComplete;
@@ -113,7 +113,7 @@ describe('IAAccountSettings', () => {
       isAdmin: true,
     };
     el.mailingLists = mailingLists;
-    el.selectedMailingLists = { ml_best_of: true, ml_donors: true };
+    el.selectedMailingLists = ['ml_best_of', 'ml_donors'];
     el.saveButtonDisabled = false;
     el.lookingToAuth = false;
 

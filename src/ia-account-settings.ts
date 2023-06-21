@@ -153,7 +153,7 @@ export class IAAccountSettings
    * @type {Boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() lookingToAuth?: Boolean = false;
+  @state() lookingToAuth?: Boolean = true;
 
   /**
    * determine if need to show loading indicator on buttons
@@ -304,9 +304,10 @@ export class IAAccountSettings
     const fieldName = input.name;
 
     if (input.checked) {
-      this.selectedMailingLists[fieldName] = true;
+      this.selectedMailingLists.push(fieldName);
     } else {
-      this.selectedMailingLists[fieldName] = false;
+      const index = this.selectedMailingLists.indexOf(fieldName);
+      this.selectedMailingLists.splice(index, 1);
     }
 
     this.changeSaveButtonState();
@@ -565,7 +566,9 @@ export class IAAccountSettings
           <button
             class="ia-button dark"
             @click=${() => {
-              window.location.href = '/';
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 10);
             }}
           >
             Cancel
@@ -732,8 +735,10 @@ export class IAAccountSettings
           type="checkbox"
           id="${list[1].key}"
           name="${list[1].key}"
-          .checked=${this.selectedMailingLists[list[1].key] === true}
           @click=${this.setMailingList}
+          .checked=${Object.values(this.selectedMailingLists).includes(
+            list[1].key
+          )}
         />
         <label for="${list[1].key}">
           ${list[1].name}: ${list[1].short_desc}</label

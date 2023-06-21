@@ -115,7 +115,7 @@ export const AccountSettings = css`
     background: rgb(238, 253, 238);
     margin-right: 20px;
     border-left: 5px solid green;
-    margin: 1rem 0;
+    margin: 1.5rem 0;
     width: fit-content;
   }
 

@@ -34,10 +34,7 @@ export async function backendServiceHandler(options: any) {
     formData.append('delete-confirm', option.confirmDelete);
   } else if (option.action === 'save-account') {
     formData.append('userData', JSON.stringify(option.userData));
-    formData.append(
-      'selectedMailingLists',
-      JSON.stringify(option.selectedMailingLists)
-    );
+    formData.append('selectedMailingLists', option.selectedMailingLists);
     formData.append('loanHistoryFlag', option.loanHistoryFlag);
   } else if (option.action === 'save-file') {
     formData = option.file;
