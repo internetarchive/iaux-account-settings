@@ -115,7 +115,7 @@ export const AccountSettings = css`
     background: rgb(238, 253, 238);
     margin-right: 20px;
     border-left: 5px solid green;
-    margin: 2rem 0;
+    margin: 1rem 0;
     width: fit-content;
   }
 
@@ -163,6 +163,7 @@ export const AccountSettings = css`
   .pointer-none {
     opacity: 0.8;
     pointer-events: none;
+    z-index: 1;
   }
 
   .delete-section {

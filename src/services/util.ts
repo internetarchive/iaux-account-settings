@@ -44,3 +44,24 @@ export function preventDefaultAndStopEvent(e: Event) {
 export function trimString(value: string): string {
   return value?.replace('/s+/', ' ')?.trim();
 }
+
+/**
+ * throttling for scroll event
+ *
+ * @export
+ * @param {Function} callbackFn
+ * @param {Number} limit
+ * @return {*}  {*}
+ */
+export function throttle(callbackFn: Function, limit: Number): any {
+  let wait = false;
+  return () => {
+    if (!wait) {
+      callbackFn();
+      wait = true;
+      setTimeout(() => {
+        wait = false;
+      }, limit as number);
+    }
+  };
+}

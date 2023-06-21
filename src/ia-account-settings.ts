@@ -13,6 +13,7 @@ import {
   togglePassword,
   preventDefaultAndStopEvent,
   trimString,
+  throttle,
 } from './services/util';
 import { AccountSettings } from './styles/account-settings';
 import { IAButtonStyles } from './styles/ia-buttons';
@@ -163,6 +164,14 @@ export class IAAccountSettings
   @state() showLoadingIndicator?: Boolean;
 
   /**
+   * set true if want to make header sticky
+   *
+   * @type {Boolean}
+   * @memberof IAUXAccountSettings
+   */
+  @state() isStickyHeader?: Boolean = false;
+
+  /**
    * since we moved pic upload feature in separate component,
    * just selecting this component to get new selected profile picture
    *
@@ -189,6 +198,8 @@ export class IAAccountSettings
 
   private userAvatarSuccessMsg =
     'Your profile picture has been updated. Please allow 5 minutes for the change to take effect.';
+
+  private providerUnlinkMsg = 'The third party provider has unlinked.';
 
   private oldUserData: UserModel = {
     email: '',
@@ -229,6 +240,20 @@ export class IAAccountSettings
       log('IAThirdPartyAuth:verifiedLogin');
       this.lookingToAuth = false;
     });
+
+    // scroll event to make sticky header
+    window.addEventListener(
+      'scroll',
+      throttle(() => {
+        if (window.scrollY > this.offsetTop) {
+          this.isStickyHeader = true;
+          log('sticky header');
+        } else {
+          this.isStickyHeader = false;
+          log('non-sticky header');
+        }
+      }, 50)
+    );
   }
 
   render() {
@@ -333,10 +358,14 @@ export class IAAccountSettings
     let error = '';
     this.userData.screenname = trimString(this.userData.screenname as string);
 
-    if (this.userData.screenname === '') {
+    const invalidLength =
+      this.userData.screenname.length < 3 ||
+      this.userData.screenname.length > 127;
+
+    if (this.userData.screenname === '' || invalidLength) {
       error = 'The screen name needs to be between 3 and 127 characters long.';
     } else if (this.userData.screenname?.includes('\\')) {
-      error = 'The screen name needs to be between 3 and 127 characters long.';
+      error = 'This does not appear to be a valid screen name.';
     } else if ((await this.isScreennameAvailable()) === false) {
       error = `The screen name ${this.userData.screenname} is already taken.`;
     }
@@ -352,9 +381,7 @@ export class IAAccountSettings
     const emailRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-    if (this.userData.email === '') {
-      error = 'This does not appear to be a valid email address.';
-    } else if (!this.userData.email?.match(emailRegex)) {
+    if (!this.userData.email?.match(emailRegex)) {
       error = 'This does not appear to be a valid email address.';
     } else if (!(await this.isEmailAvailable())) {
       error = `${this.userData.email} is already taken.`;
@@ -366,11 +393,11 @@ export class IAAccountSettings
   /** @inheritdoc */
   async validatePassword() {
     this.userData.password = trimString(this.userData.password as string);
-    const invalidPassword =
+    const invalidLength =
       this.userData.password.length < this.passwordMinLength ||
       this.userData.password.length > this.passwordMaxLength;
 
-    if (this.userData.password && invalidPassword) {
+    if (this.userData.password && invalidLength) {
       this.fieldsError = {
         ...this.fieldsError,
         password: this.passwordLengthMessage,
@@ -434,6 +461,11 @@ export class IAAccountSettings
 
       if (response.success && response.updatedFields) {
         this.updatedFields = response.updatedFields;
+
+        // just wait for few miliseconds to render response msg
+        setTimeout(() => {
+          this.scrollIntoView();
+        }, 100);
       }
     }
 
@@ -486,6 +518,13 @@ export class IAAccountSettings
           detail: { provider },
         })
       );
+
+      this.updatedFields = {
+        ...this.updatedFields,
+        ...{
+          unlink: this.providerUnlinkMsg,
+        },
+      } as ResponseModel;
     }
 
     return nothing;
@@ -493,7 +532,9 @@ export class IAAccountSettings
 
   get verificationTemplate() {
     return html` <authentication-template
-      authenticationType="${!this.linkedProviders.length ? 'ia' : ''}"
+      authenticationType="${!Object.keys(this.linkedProviders).length
+        ? 'ia'
+        : ''}"
       identifier=${this.userData.identifier}
       email=${this.userData.email}
       @ia-authenticated=${() => {
@@ -511,7 +552,9 @@ export class IAAccountSettings
 
   get settingsTemplate() {
     /* eslint-disable lit-a11y/click-events-have-key-events, lit-a11y/anchor-is-valid */
-    return html`<div class="settings-template">
+    return html`<div
+      class="settings-template ${this.isStickyHeader ? 'sticky-header' : ''} "
+    >
       <form id="form" name="account-settings" method="post" autocomplete="off">
         <div
           class="form-element header ${this.showLoadingIndicator
@@ -521,7 +564,9 @@ export class IAAccountSettings
           <h2>Account settings</h2>
           <button
             class="ia-button dark"
-            @click=${() => window.location.reload()}
+            @click=${() => {
+              window.location.href = '/';
+            }}
           >
             Cancel
           </button>
@@ -538,128 +583,133 @@ export class IAAccountSettings
           </button>
         </div>
 
-        <div class="form-element data-updated">${this.getResponseTemplate}</div>
+        <div class="body-content">
+          <div class="form-element data-updated">
+            ${this.getResponseTemplate}
+          </div>
 
-        <div class="form-element">
-          <label>Change profile picture</label>
-          <ia-pic-uploader
-            identifier=${this.userData.identifier}
-            picture="${this.profilePicture}"
-            ?lookingAtMyAccount=${true}
-            type="compact"
-            @fileChanged=${() => {
-              this.changeSaveButtonState();
-            }}
-            @fileUploaded=${() => {
-              this.profilePictureUploaded();
-            }}
-          ></ia-pic-uploader>
-        </div>
+          <div class="form-element">
+            <label>Change profile picture</label>
+            <ia-pic-uploader
+              identifier=${this.userData.identifier}
+              picture="${this.profilePicture}"
+              ?lookingAtMyAccount=${true}
+              type="compact"
+              @fileChanged=${() => {
+                this.changeSaveButtonState();
+              }}
+              @fileUploaded=${() => {
+                this.profilePictureUploaded();
+              }}
+            ></ia-pic-uploader>
+          </div>
 
-        <div class="form-element ">
-          <label for="screenname">
-            Change screenname <small>(will not change user id)</small>
-          </label>
-          <input
-            type="text"
-            class="form-control"
-            id="screenname"
-            name="screenname"
-            .value="${this.userData.screenname}"
-            @input=${this.setScreenname}
-            @blur=${this.validateScreenname}
-          />
-          <span class="error-field">${this.fieldsError.screenname}</span>
-        </div>
+          <div class="form-element ">
+            <label for="screenname">
+              Change screenname <small>(will not change user id)</small>
+            </label>
+            <input
+              type="text"
+              class="form-control"
+              id="screenname"
+              name="screenname"
+              .value="${this.userData.screenname}"
+              @input=${this.setScreenname}
+              @blur=${this.validateScreenname}
+            />
+            <span class="error-field">${this.fieldsError.screenname}</span>
+          </div>
 
-        <div class="form-element">
-          <label for="email">
-            Change email <small>(verification will be required)</small>
-          </label>
-          <input
-            type="email"
-            class="form-control"
-            id="email"
-            name="email"
-            .value="${this.userData.email}"
-            @input=${this.setEmail}
-            @blur=${this.validateEmail}
-          />
-          <span class="error-field">${this.fieldsError.email}</span>
-        </div>
+          <div class="form-element">
+            <label for="email">
+              Change email <small>(verification will be required)</small>
+            </label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              .value="${this.userData.email}"
+              @input=${this.setEmail}
+              @blur=${this.validateEmail}
+            />
+            <span class="error-field">${this.fieldsError.email}</span>
+          </div>
 
-        <div class="form-element">
-          <label for="password">
-            Change Internet Archive / Open Library password
-          </label>
-          <input
-            type="password"
-            class="form-control"
-            id="password"
-            name="password"
-            autocomplete="new-password"
-            @input=${this.setPassword}
-            @blur=${this.validatePassword}
-          />
-          <input
-            type="image"
-            class="password-icon"
-            src="https://archive.org/images/eye-crossed.svg"
-            alt="View text"
-            @click=${(e: Event) => {
-              preventDefaultAndStopEvent(e);
-              togglePassword(e, this.passwordField as HTMLInputElement);
-            }}
-          />
-          <span class="error-field">${this.fieldsError.password}</span>
-        </div>
+          <div class="form-element">
+            <label for="password">
+              Change Internet Archive / Open Library password
+            </label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              autocomplete="new-password"
+              @input=${this.setPassword}
+              @blur=${this.validatePassword}
+            />
+            <input
+              type="image"
+              class="password-icon"
+              src="https://archive.org/images/eye-crossed.svg"
+              alt="View text"
+              @click=${(e: Event) => {
+                preventDefaultAndStopEvent(e);
+                togglePassword(e, this.passwordField as HTMLInputElement);
+              }}
+            />
+            <span class="error-field">${this.fieldsError.password}</span>
+          </div>
 
-        <div class="form-element">
-          <label>Set borrow history</label>
-          <input
-            type="checkbox"
-            id="borrow-history"
-            name="borrow-history ${this.loanHistoryFlag}"
-            .checked=${this.loanHistoryFlag === 'public' ||
-            this.loanHistoryFlag === true}
-            @click=${this.setBorrowHistory}
-          />
-          <label for="borrow-history"> Visible to the public</label>
-        </div>
+          <div class="form-element">
+            <label>Set borrow history</label>
+            <input
+              type="checkbox"
+              id="borrow-history"
+              name="borrow-history ${this.loanHistoryFlag}"
+              .checked=${this.loanHistoryFlag === 'public' ||
+              this.loanHistoryFlag === true}
+              @click=${this.setBorrowHistory}
+            />
+            <label for="borrow-history"> Visible to the public</label>
+          </div>
 
-        <div class="form-element newsletter">
-          <label>Newsletter subscriptions</label>
-          <p>
-            Stay up to date with what's happening at the Internet Archive by
-            signing up for our free newsletters.
-          </p>
-          ${this.mailingListsTemplate}
-        </div>
+          <div class="form-element newsletter">
+            <label>Newsletter subscriptions</label>
+            <p>
+              Stay up to date with what's happening at the Internet Archive by
+              signing up for our free newsletters.
+            </p>
+            ${this.mailingListsTemplate}
+          </div>
 
-        <div class="form-element">
-          <label for="linked-account"
-            >Linked 3rd party accounts (e.g. Google)</label
+          <div class="form-element">
+            <label for="linked-account"
+              >Linked 3rd party accounts (e.g. Google)</label
+            >
+            ${Object.keys(this.linkedProviders).length
+              ? this.linkedAccountTemplate
+              : 'You have no linked accounts'}
+          </div>
+
+          <div
+            class="form-element delete-link ${this.attemptToDelete
+              ? 'hide'
+              : ''}"
           >
-          ${Object.keys(this.linkedProviders).length
-            ? this.linkedAccountTemplate
-            : 'You have no linked accounts'}
-        </div>
+            <a
+              href="javascript:void(0)"
+              @click=${() => {
+                this.attemptToDelete = true;
+                window.scrollTo();
+              }}
+              >Delete Internet Archive / Open Library account
+            </a>
+          </div>
 
-        <div
-          class="form-element delete-link ${this.attemptToDelete ? 'hide' : ''}"
-        >
-          <a
-            href="javascript:void(0)"
-            @click=${() => {
-              this.attemptToDelete = true;
-              window.scrollTo();
-            }}
-            >Delete Internet Archive / Open Library account (requires
-            confirmation)
-          </a>
+          ${this.attemptToDelete ? this.deleteAccountTemplate : ''}
         </div>
-
-        ${this.attemptToDelete ? this.deleteAccountTemplate : ''}
       </form>
 
       ${this.userData.isAdmin ? this.adminFunctionsTemplate : ''}
@@ -822,6 +872,19 @@ export class IAAccountSettings
         ia-pic-uploader:focus,
         ia-pic-uploader:focus-visible {
           outline: none;
+        }
+
+        /* sticky header on scroll */
+        .sticky-header .header {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          padding: 20px 0;
+          z-index: 1;
+          background: #fff;
+        }
+        .sticky-header .body-content {
+          margin-top: 50px;
         }
       `,
     ];
