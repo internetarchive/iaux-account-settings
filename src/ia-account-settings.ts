@@ -30,6 +30,8 @@ import type {
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
 import '@internetarchive/ia-pic-uploader';
 import './components/authentication-template';
+import eyeCrossed from './assets/eye-crossed';
+import eyeOpen from './assets/eye.-open';
 
 @customElement('ia-account-settings')
 export class IAAccountSettings
@@ -170,6 +172,13 @@ export class IAAccountSettings
    * @memberof IAUXAccountSettings
    */
   @state() isStickyHeader?: Boolean = false;
+
+  /**
+   * toggle password field type to text|password
+   * @type {Boolean}
+   * @memberof IAUXAccountSettings
+   */
+  @state() private showPassword?: Boolean = false;
 
   /**
    * since we moved pic upload feature in separate component,
@@ -652,16 +661,16 @@ export class IAAccountSettings
               @input=${this.setPassword}
               @blur=${this.validatePassword}
             />
-            <input
-              type="image"
+            <button
+              type="button"
               class="password-icon"
-              src="https://archive.org/images/eye-crossed.svg"
-              alt="View text"
-              @click=${(e: Event) => {
-                preventDefaultAndStopEvent(e);
+              @click="${(e: Event) => {
                 togglePassword(e, this.passwordField as HTMLInputElement);
-              }}
-            />
+                this.showPassword = !this.showPassword;
+              }}"
+            >
+              ${this.showPassword ? eyeOpen : eyeCrossed}
+            </button>
             <span class="error-field">${this.fieldsError.password}</span>
           </div>
 

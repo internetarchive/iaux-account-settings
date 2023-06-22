@@ -9,17 +9,12 @@ export async function togglePassword(
   e: Event,
   passwordField: HTMLInputElement
 ) {
-  const button = e.target as HTMLImageElement;
   const field = passwordField;
 
   if (field?.type === 'password') {
     field.type = 'text';
-    button.src = 'https://archive.org/images/eye.svg';
-    button.alt = 'View text';
   } else {
     field.type = 'password';
-    button.src = 'https://archive.org/images/eye-crossed.svg';
-    button.alt = 'Hide text';
   }
 }
 

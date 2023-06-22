@@ -190,4 +190,16 @@ export const AccountSettings = css`
     border-radius: 0px 5px 5px 0px;
     border: 0;
   }
+
+  .password-icon {
+    background: #fff;
+    vertical-align: middle;
+    padding: 7px 4px;
+    cursor: pointer;
+    border: 0px;
+  }
+
+  .password-icon svg {
+    margin-top: 2px;
+  }
 `;
