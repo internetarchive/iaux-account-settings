@@ -5,16 +5,13 @@ import { IAButtonStyles } from '../styles/ia-buttons';
 import { AccountSettings } from '../styles/account-settings';
 import type { ResponseModel } from '../models';
 import { backendServiceHandler } from '../services/backend-service';
-import {
-  togglePassword,
-  preventDefaultAndStopEvent,
-  trimString,
-} from '../services/util';
+import { togglePassword, preventDefaultAndStopEvent } from '../services/util';
 
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
 
 import eyeCrossed from '../assets/eye-crossed';
 import eyeOpen from '../assets/eye.-open';
+
 @customElement('authentication-template')
 export class AuthenticationTemplate extends LitElement {
   /**
@@ -84,7 +81,7 @@ export class AuthenticationTemplate extends LitElement {
   async verifyIAPassword(event: Event) {
     preventDefaultAndStopEvent(event);
 
-    if (!trimString(this.password as string)) {
+    if (!this.password) {
       this.passwordField?.focus();
       this.passwordError = " * password can't be empty";
       return;
@@ -94,7 +91,7 @@ export class AuthenticationTemplate extends LitElement {
     const response = (await backendServiceHandler({
       action: 'verify-password',
       identifier: this.identifier,
-      password: trimString(this.password as string),
+      password: this.password,
     })) as ResponseModel;
 
     if (response.success === true) {

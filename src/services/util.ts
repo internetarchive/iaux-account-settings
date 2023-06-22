@@ -48,7 +48,7 @@ export function trimString(value: string): string {
  * @param {Number} limit
  * @return {*}  {*}
  */
-export function throttle(callbackFn: Function, limit: Number): any {
+export function throttle(callbackFn: Function, limit: number): any {
   let wait = false;
   return () => {
     if (!wait) {
@@ -56,7 +56,7 @@ export function throttle(callbackFn: Function, limit: Number): any {
       wait = true;
       setTimeout(() => {
         wait = false;
-      }, limit as number);
+      }, limit);
     }
   };
 }

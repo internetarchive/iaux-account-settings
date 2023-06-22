@@ -60,8 +60,9 @@ export class IAAccountSettings
    * @type {SelectedMailingListsModel}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: Object }) selectedMailingLists: SelectedMailingListsModel =
-    {};
+  @property({ type: Array }) selectedMailingLists: SelectedMailingListsModel = [
+    '',
+  ];
 
   /**
    * contain boolean status about google account is linked
@@ -88,7 +89,7 @@ export class IAAccountSettings
   @property({ type: Object }) linkedProviders: LinkedProvidersModel = {};
 
   /**
-   * contain boolean status about google account is linked
+   * contain profile csrf token
    *
    * @type {String}
    * @memberof IAUXAccountSettings
@@ -402,10 +403,10 @@ export class IAAccountSettings
 
   /** @inheritdoc */
   async validatePassword() {
-    this.userData.password = trimString(this.userData.password as string);
+    const passwordLength = this.userData.password?.length as number;
     const invalidLength =
-      this.userData.password.length < this.passwordMinLength ||
-      this.userData.password.length > this.passwordMaxLength;
+      passwordLength < this.passwordMinLength ||
+      passwordLength > this.passwordMaxLength;
 
     if (this.userData.password && invalidLength) {
       this.fieldsError = {
@@ -573,6 +574,7 @@ export class IAAccountSettings
         >
           <h2>Account settings</h2>
           <button
+            type="button"
             class="ia-button dark"
             @click=${() => {
               setTimeout(() => {
@@ -679,7 +681,7 @@ export class IAAccountSettings
             <input
               type="checkbox"
               id="borrow-history"
-              name="borrow-history ${this.loanHistoryFlag}"
+              name="borrow-history"
               .checked=${this.loanHistoryFlag === 'public' ||
               this.loanHistoryFlag === true}
               @click=${this.setBorrowHistory}
@@ -706,18 +708,20 @@ export class IAAccountSettings
           </div>
 
           <div
-            class="form-element delete-link ${this.attemptToDelete
+            class="form-element delete-account ${this.attemptToDelete
               ? 'hide'
               : ''}"
           >
-            <a
+            <button
+              type="button"
+              class="delete-link"
               href="javascript:void(0)"
               @click=${() => {
                 this.attemptToDelete = true;
-                window.scrollTo();
               }}
-              >Delete Internet Archive / Open Library account
-            </a>
+            >
+              Delete Internet Archive / Open Library account
+            </button>
           </div>
 
           ${this.attemptToDelete ? this.deleteAccountTemplate : ''}
@@ -894,7 +898,7 @@ export class IAAccountSettings
           top: 0;
           width: 100%;
           padding: 20px 0;
-          z-index: 1;
+          z-index: 2;
           background: #fff;
         }
         .sticky-header .body-content {

@@ -27,9 +27,7 @@ export type MailingListsModel = {
   [key: string]: MailingList;
 };
 
-export type SelectedMailingListsModel = {
-  [key: string]: any;
-};
+export type SelectedMailingListsModel = string[];
 
 export type LinkedProvidersModel = {
   [key: string]: boolean;

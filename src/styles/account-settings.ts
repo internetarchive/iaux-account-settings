@@ -101,9 +101,12 @@ export const AccountSettings = css`
     padding: 5px 0;
   }
 
-  .delete-link a {
+  .delete-link {
     margin-top: 10px;
-    text-decoration: none;
+    border: none;
+    background: rgb(255, 255, 255);
+    cursor: pointer;
+    padding-left: 0px;
     color: #bb0505;
   }
   .delete-link:hover {
