@@ -112,7 +112,7 @@ export class IAAccountSettings
    * @type {ErrorModel}
    * @memberof IAUXAccountSettings
    */
-  @state() private fieldsError: ErrorModel = {};
+  @state() fieldsError: ErrorModel = {};
 
   /**
    * open delete form
