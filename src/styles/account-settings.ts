@@ -117,9 +117,16 @@ export const AccountSettings = css`
     display: grid;
     background: rgb(238, 253, 238);
     margin-right: 20px;
-    border-left: 5px solid green;
     margin: 1.5rem 0;
     width: fit-content;
+  }
+
+  .data-updated.success {
+    border-left: 5px solid green;
+  }
+
+  .data-updated.error {
+    border-left: 5px solid red;
   }
 
   .error-field {
@@ -142,6 +149,22 @@ export const AccountSettings = css`
     padding: 2px 6px;
   }
   .success-field .close:hover {
+    background: #b9c9b9;
+    cursor: pointer;
+  }
+
+  .data-updated .error-field {
+    font-size: 1.4rem;
+    padding: 10px;
+    cursor: pointer;
+    display: block;
+  }
+
+  .data-updated error-field .close {
+    float: right;
+    padding: 2px 6px;
+  }
+  .data-updated .error-field .close:hover {
     background: #b9c9b9;
     cursor: pointer;
   }

@@ -17,18 +17,22 @@ describe('AuthenticationTemplate', () => {
     expect(el.shadowRoot?.querySelector('#password')).to.be.exist;
   });
 
-  it('render google sign-in authentication template', async () => {
+  it('check set password function ', async () => {
     const el = await fixture<AuthenticationTemplate>(
       html`<authentication-template></authentication-template>`
     );
-    el.authenticationType = 'google';
+    el.authenticationType = 'ia';
     el.identifier = '@foo-bar';
     await el.updateComplete;
 
-    expect(el.shadowRoot?.querySelector('.authentication-template')).to.be
-      .exist;
-    // expect(el.shadowRoot?.querySelector('.third-party-login-cta')).to.be.exist;
-    // expect(el.shadowRoot?.querySelector('ia-third-party-auth')).to.be.exist;
+    const password = el.shadowRoot?.querySelector(
+      '#password'
+    ) as HTMLInputElement;
+    password.value = 'neeraj123';
+    password.dispatchEvent(new InputEvent('input'));
+    await el.updateComplete;
+
+    expect(el.passwordError).to.be.equal('');
   });
 
   it('authentication account using ia password', async () => {

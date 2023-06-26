@@ -68,7 +68,7 @@ export class AuthenticationTemplate extends LitElement {
    * @type {string}
    * @memberof IAUXAccountSettings
    */
-  @state() private passwordError?: string = '';
+  @state() passwordError?: string = '';
 
   @query('.password') private passwordField?: HTMLInputElement;
 

@@ -23,19 +23,20 @@ export async function backendServiceHandler(options: any) {
   let response = {};
 
   let formData = new FormData();
+  formData.append('csrf-token', option.csrfToken);
   formData.append('action', option.action);
   formData.append('email', option.email);
   formData.append('identifier', option.identifier);
-  formData.append('screenname', option.screenname);
+  formData.append('screenname', option.userData.screenname);
 
   if (option.action === 'verify-password') {
-    formData.append('password', option.password);
+    formData.append('password', option.userData.password);
   } else if (option.action === 'delete-account') {
     formData.append('delete-confirm', option.confirmDelete);
   } else if (option.action === 'save-account') {
-    formData.append('userData', JSON.stringify(option.userData));
-    formData.append('selectedMailingLists', option.selectedMailingLists);
-    formData.append('loanHistoryFlag', option.loanHistoryFlag);
+    formData.append('user-data', JSON.stringify(option.userData));
+    formData.append('selected-Mailing-lists', option.selectedMailingLists);
+    formData.append('loan-history-flag', option.loanHistoryFlag);
   } else if (option.action === 'save-file') {
     formData = option.file;
     baseHost = `${option.endpoint}?${option.getParam}`;
@@ -58,13 +59,13 @@ export async function backendServiceHandler(options: any) {
          * @ignore
          */
         if (baseHost === '/demo/') {
-          if (
-            option.action === 'screenname-available' &&
-            option.screenname === 'neeraj-archive'
-          ) {
+          console.log(option.userData.screenname);
+          if (option.userData.screenname === 'neeraj-archive') {
             return {
               success: false,
-              error: 'This screen name is already being used by another user.',
+              updatedFields: {
+                csrf_token: 'CSRF token is not valid.',
+              },
             };
           } else {
             return {

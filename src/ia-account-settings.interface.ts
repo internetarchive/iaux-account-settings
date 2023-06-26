@@ -29,7 +29,7 @@ export interface IAAccountSettingsInterface {
    * @param {Event} event
    * @memberof IAAccountSettingsInterface
    */
-  setBorrowHistory(event: Event): void;
+  setLoanHistory(event: Event): void;
 
   /**
    * check if fields has errors

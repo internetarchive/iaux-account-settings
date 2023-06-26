@@ -94,7 +94,7 @@ export class IAAccountSettings
    * @type {String}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) profileCsrfToken: String = '';
+  @property({ type: String }) csrfToken: String = '';
 
   /**
    * contain fileSelect input field
@@ -302,7 +302,7 @@ export class IAAccountSettings
   }
 
   /** @inheritdoc */
-  setBorrowHistory(e: Event) {
+  setLoanHistory(e: Event) {
     const input = e.target as HTMLInputElement;
     this.loanHistoryFlag = input.checked ? 'public' : 'private';
     this.changeSaveButtonState();
@@ -466,12 +466,13 @@ export class IAAccountSettings
         action: 'save-account',
         identifier: this.userData.identifier,
         userData: this.userData,
+        csrfToken: this.csrfToken,
         selectedMailingLists: this.selectedMailingLists,
         loanHistoryFlag: this.loanHistoryFlag,
       })) as ResponseModel;
 
-      if (response.success && response.updatedFields) {
-        this.updatedFields = response.updatedFields;
+      if (response) {
+        this.updatedFields = response;
 
         // just wait for few miliseconds to render response msg
         setTimeout(() => {
@@ -567,6 +568,7 @@ export class IAAccountSettings
       class="settings-template ${this.isStickyHeader ? 'sticky-header' : ''} "
     >
       <form id="form" name="account-settings" method="post" autocomplete="off">
+        <input type="hidden" name="csrf-token" .value="${this.csrfToken}" />
         <div
           class="form-element header ${this.showLoadingIndicator
             ? 'pointer-none'
@@ -598,7 +600,10 @@ export class IAAccountSettings
         </div>
 
         <div class="body-content">
-          <div class="form-element data-updated">
+          <div
+            class="data-updated 
+            ${this.updatedFields?.success ? 'success' : 'error'}"
+          >
             ${this.getResponseTemplate}
           </div>
 
@@ -680,13 +685,13 @@ export class IAAccountSettings
             <label>Set borrow history</label>
             <input
               type="checkbox"
-              id="borrow-history"
-              name="borrow-history"
+              id="loan-history"
+              name="loan-history"
               .checked=${this.loanHistoryFlag === 'public' ||
               this.loanHistoryFlag === true}
-              @click=${this.setBorrowHistory}
+              @click=${this.setLoanHistory}
             />
-            <label for="borrow-history"> Visible to the public</label>
+            <label for="loan-history"> Visible to the public</label>
           </div>
 
           <div class="form-element newsletter">
@@ -733,8 +738,12 @@ export class IAAccountSettings
   }
 
   get getResponseTemplate() {
-    return Object.values(this.updatedFields as object)?.map(
-      msg => html`<span class="success-field">&#10003; ${msg}</span>`
+    const responseForFields = this.updatedFields?.updatedFields || {};
+
+    return Object.values(responseForFields as object)?.map(msg =>
+      this.updatedFields?.success
+        ? html`<span class="success-field">&#10003; ${msg}</span>`
+        : html`<span class="error-field">&#10006; ${msg}</span>`
     );
   }
 
@@ -809,7 +818,7 @@ export class IAAccountSettings
         <label for="confirm-delete"
           >I'm sure I want to delete my account.</label
         >
-        <p for="borrow-history">This action cannot be reversed.</p>
+        <p>This action cannot be reversed.</p>
         ${this.getDeleteButton}
       </div>
     `;
