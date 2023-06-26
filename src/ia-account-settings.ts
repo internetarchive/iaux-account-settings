@@ -139,7 +139,7 @@ export class IAAccountSettings
    * @type {Object}
    * @memberof IAAccountSettings
    */
-  @state() private updatedFields?: ResponseModel = {};
+  @state() private responseFields?: ResponseModel = {};
 
   /**
    * determine if need to disable save button
@@ -235,7 +235,7 @@ export class IAAccountSettings
 
     if (changed.has('userData') || changed.has('selectedMailingLists')) {
       this.showLoadingIndicator = false;
-      this.updatedFields = {};
+      this.responseFields = {};
     }
 
     if (changed.has('fieldsError') && this.hasFieldError()) {
@@ -257,10 +257,8 @@ export class IAAccountSettings
       throttle(() => {
         if (window.scrollY > this.offsetTop) {
           this.isStickyHeader = true;
-          log('sticky header');
         } else {
           this.isStickyHeader = false;
-          log('non-sticky header');
         }
       }, 50)
     );
@@ -472,7 +470,7 @@ export class IAAccountSettings
       })) as ResponseModel;
 
       if (response) {
-        this.updatedFields = response;
+        this.responseFields = response;
 
         // just wait for few miliseconds to render response msg
         setTimeout(() => {
@@ -494,8 +492,8 @@ export class IAAccountSettings
   profilePictureUploaded() {
     this.saveButtonDisabled = true;
 
-    this.updatedFields = {
-      ...this.updatedFields,
+    this.responseFields = {
+      ...this.responseFields,
       ...{
         file: this.userAvatarSuccessMsg,
       },
@@ -531,8 +529,8 @@ export class IAAccountSettings
         })
       );
 
-      this.updatedFields = {
-        ...this.updatedFields,
+      this.responseFields = {
+        ...this.responseFields,
         ...{
           unlink: this.providerUnlinkMsg,
         },
@@ -549,6 +547,7 @@ export class IAAccountSettings
         : ''}"
       identifier=${this.userData.identifier}
       email=${this.userData.email}
+      csrfToken=${this.csrfToken}
       @ia-authenticated=${() => {
         this.lookingToAuth = false;
         try {
@@ -568,7 +567,6 @@ export class IAAccountSettings
       class="settings-template ${this.isStickyHeader ? 'sticky-header' : ''} "
     >
       <form id="form" name="account-settings" method="post" autocomplete="off">
-        <input type="hidden" name="csrf-token" .value="${this.csrfToken}" />
         <div
           class="form-element header ${this.showLoadingIndicator
             ? 'pointer-none'
@@ -602,7 +600,7 @@ export class IAAccountSettings
         <div class="body-content">
           <div
             class="data-updated 
-            ${this.updatedFields?.success ? 'success' : 'error'}"
+            ${this.responseFields?.success ? 'success' : 'error'}"
           >
             ${this.getResponseTemplate}
           </div>
@@ -738,12 +736,14 @@ export class IAAccountSettings
   }
 
   get getResponseTemplate() {
-    const responseForFields = this.updatedFields?.updatedFields || {};
+    if (this.responseFields?.success === false) {
+      return html`<span class="error-field"
+        >&#10006; ${this.responseFields?.error}</span
+      >`;
+    }
 
-    return Object.values(responseForFields as object)?.map(msg =>
-      this.updatedFields?.success
-        ? html`<span class="success-field">&#10003; ${msg}</span>`
-        : html`<span class="error-field">&#10006; ${msg}</span>`
+    return Object.values(this.responseFields?.fields ?? {})?.map(
+      msg => html`<span class="success-field">&#10003; ${msg}</span>`
     );
   }
 
@@ -837,6 +837,7 @@ export class IAAccountSettings
         const response = (await backendServiceHandler({
           action: 'delete-account',
           confirmDelete: this.confirmDelete,
+          csrfToken: this.csrfToken,
         })) as ResponseModel;
 
         if (response.success) window.location.reload();

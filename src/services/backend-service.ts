@@ -12,6 +12,7 @@ export async function backendServiceHandler(options: any) {
     identifier: '',
     userData: {},
     selectedMailingLists: [],
+    csrfToken: '',
     baseHost: '/account/index.php',
     headers: {},
     ...options,
@@ -23,23 +24,22 @@ export async function backendServiceHandler(options: any) {
   let response = {};
 
   let formData = new FormData();
-  formData.append('csrf-token', option.csrfToken);
   formData.append('action', option.action);
-  formData.append('email', option.email);
   formData.append('identifier', option.identifier);
-  formData.append('screenname', option.userData.screenname);
+  formData.append('csrf-token', option.csrfToken);
 
-  if (option.action === 'verify-password') {
-    formData.append('password', option.userData.password);
+  if (option.action === 'email-available') {
+    formData.append('email', option.email);
+  } else if (option.action === 'screenname-available') {
+    formData.append('screenname', option.screenname);
+  } else if (option.action === 'verify-password') {
+    formData.append('password', option.password);
   } else if (option.action === 'delete-account') {
     formData.append('delete-confirm', option.confirmDelete);
   } else if (option.action === 'save-account') {
-    formData.append('user-data', JSON.stringify(option.userData));
-    formData.append('selected-Mailing-lists', option.selectedMailingLists);
+    formData.append('userdata', JSON.stringify(option.userData));
+    formData.append('selected-mailing-lists', option.selectedMailingLists);
     formData.append('loan-history-flag', option.loanHistoryFlag);
-  } else if (option.action === 'save-file') {
-    formData = option.file;
-    baseHost = `${option.endpoint}?${option.getParam}`;
   }
 
   if (window?.location?.pathname === '/demo/') baseHost = '/demo/';
@@ -59,13 +59,11 @@ export async function backendServiceHandler(options: any) {
          * @ignore
          */
         if (baseHost === '/demo/') {
-          console.log(option.userData.screenname);
           if (option.userData.screenname === 'neeraj-archive') {
             return {
               success: false,
-              updatedFields: {
-                csrf_token: 'CSRF token is not valid.',
-              },
+              error:
+                'Invalid CSRF token, please refresh the page and try again later.',
             };
           } else {
             return {

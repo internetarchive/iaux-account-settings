@@ -39,6 +39,14 @@ export class AuthenticationTemplate extends LitElement {
   @property({ type: String }) email: string = '';
 
   /**
+   * contain profile csrf token
+   *
+   * @type {String}
+   * @memberof IAUXAccountSettings
+   */
+  @property({ type: String }) csrfToken: string = '';
+
+  /**
    * show loading indicator when form is submitted
    *
    * @private
@@ -92,6 +100,7 @@ export class AuthenticationTemplate extends LitElement {
       action: 'verify-password',
       identifier: this.identifier,
       password: this.password,
+      csrfToken: this.csrfToken,
     })) as ResponseModel;
 
     if (response.success === true) {
@@ -99,7 +108,7 @@ export class AuthenticationTemplate extends LitElement {
       this.dispatchEvent(new Event('ia-authenticated'));
     } else {
       this.passwordField?.focus();
-      this.passwordError = ' * invalid password';
+      this.passwordError = response.error;
     }
 
     this.showLoadingIndicator = false;
