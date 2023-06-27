@@ -60,9 +60,16 @@ export class IAAccountSettings
    * @type {SelectedMailingListsModel}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: Array }) selectedMailingLists: SelectedMailingListsModel = [
-    '',
-  ];
+  @property({ type: Array }) selectedMailingLists: SelectedMailingListsModel =
+    [];
+
+  /**
+   * contain boolean status about google account is linked
+   *
+   * @type {LinkedProvidersModel}
+   * @memberof IAUXAccountSettings
+   */
+  @property({ type: Array }) linkedProviders: LinkedProvidersModel = [];
 
   /**
    * contain boolean status about google account is linked
@@ -79,14 +86,6 @@ export class IAAccountSettings
    * @memberof IAUXAccountSettings
    */
   @property({ type: String }) loanHistoryFlag: String | Boolean = '';
-
-  /**
-   * contain boolean status about google account is linked
-   *
-   * @type {LinkedProvidersModel}
-   * @memberof IAUXAccountSettings
-   */
-  @property({ type: Object }) linkedProviders: LinkedProvidersModel = {};
 
   /**
    * contain profile csrf token
@@ -216,8 +215,8 @@ export class IAAccountSettings
     screenname: '',
   };
 
-  // we need to store the provider user wants to unlink from account
-  private unlinkProviders: LinkedProvidersModel = {};
+  // we need to store the temp provider user wants to unlink from account
+  private unlinkProviders: LinkedProvidersModel = [];
 
   firstUpdated() {
     this.oldUserData = Object.assign(this.oldUserData, {
@@ -328,10 +327,11 @@ export class IAAccountSettings
       return;
     }
 
-    if (input.checked) {
-      this.unlinkProviders[provider] = false;
+    if (!input.checked) {
+      this.unlinkProviders.push(provider);
     } else {
-      this.unlinkProviders[provider] = true;
+      const index = this.unlinkProviders.indexOf(provider);
+      this.unlinkProviders.splice(index, 1);
     }
 
     this.changeSaveButtonState();
@@ -456,7 +456,6 @@ export class IAAccountSettings
 
     // dispatch enternal events
     this.emitProfileAvatarSaveEvent();
-    this.emitUnlinkProviderEvent();
 
     // if don't have any active error, just procced to save settings
     if (!this.hasFieldError()) {
@@ -471,11 +470,10 @@ export class IAAccountSettings
 
       if (response) {
         this.responseFields = response;
+      }
 
-        // just wait for few miliseconds to render response msg
-        setTimeout(() => {
-          this.scrollIntoView();
-        }, 100);
+      if (response.success === true) {
+        this.emitUnlinkProviderEvent();
       }
     }
 
@@ -494,10 +492,11 @@ export class IAAccountSettings
 
     this.responseFields = {
       ...this.responseFields,
-      ...{
+      fields: {
         file: this.userAvatarSuccessMsg,
+        ...this.responseFields?.fields,
       },
-    } as ResponseModel;
+    };
   }
 
   /**
@@ -514,10 +513,10 @@ export class IAAccountSettings
    * dispatch event to unlink provider at ia-third-party-auth component
    */
   emitUnlinkProviderEvent() {
-    if (Object.keys(this.unlinkProviders).length === 0) return nothing;
+    if (Object.values(this.unlinkProviders).length === 0) return nothing;
 
     // if user want to unlinkProvider, dispatch an event to ia-third-party-auth
-    const provider = Object.keys(this.unlinkProviders).filter(
+    const provider = Object.values(this.unlinkProviders).filter(
       key => key ?? nothing
     );
 
@@ -531,10 +530,11 @@ export class IAAccountSettings
 
       this.responseFields = {
         ...this.responseFields,
-        ...{
+        fields: {
           unlink: this.providerUnlinkMsg,
+          ...this.responseFields?.fields,
         },
-      } as ResponseModel;
+      };
     }
 
     return nothing;
@@ -769,7 +769,7 @@ export class IAAccountSettings
   }
 
   get linkedAccountTemplate() {
-    return Object.keys(this.linkedProviders)?.map(provider => {
+    return Object.values(this.linkedProviders)?.map(provider => {
       if (this.linkedProviders[provider] === false)
         return html`You have no linked accounts`;
 
@@ -778,7 +778,7 @@ export class IAAccountSettings
           id="ia-${provider}"
           type="checkbox"
           data-provider=${provider}
-          .checked=${this.linkedProviders[provider] === true}
+          checked
           @click=${this.setLinkedProvider}
         />
         <label for="ia-${provider}"> ${provider}</label>`;

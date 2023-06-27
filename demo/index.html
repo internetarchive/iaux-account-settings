@@ -37,7 +37,7 @@
     };
 
     const selectedMailingLists = [ 'ml_best_of', 'ml_donors' ];
-    const linkedProvider = {}; //  { google: true } 
+    const linkedProviders = [ 'google' ];
 
     render(
       html`
@@ -45,9 +45,9 @@
         .userData="${userData}"
         .mailingLists="${mailingLists}"
         .selectedMailingLists=${selectedMailingLists}
+        .linkedProviders=${linkedProviders}
         .profilePicture=${'../demo/default-preview.jpg'}
         .loanHistoryFlag=${'public'}
-        .linkedProviders="${linkedProvider}"
         .csrfToken=${'sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5'}
         .updatedFields=${{
           "screenname": "123Your screen name has been updated successfully.",

@@ -59,7 +59,10 @@ export async function backendServiceHandler(options: any) {
          * @ignore
          */
         if (baseHost === '/demo/') {
-          if (option.userData.screenname === 'neeraj-archive') {
+          if (
+            option.userData.screenname === 'neeraj-archive' &&
+            option.action === 'email-available'
+          ) {
             return {
               success: false,
               error:
@@ -68,7 +71,7 @@ export async function backendServiceHandler(options: any) {
           } else {
             return {
               success: true,
-              updatedFields: {
+              fields: {
                 screenname: 'Your screen name has been updated successfully.',
                 mailing_lists: 'Mailing lists has been updated!',
               },

@@ -40,7 +40,7 @@ describe('IAAccountSettings', () => {
     const el = await fixture<IAAccountSettings>(
       html`<ia-account-settings></ia-account-settings>`
     );
-    el.linkedProviders = { google: true };
+    el.linkedProviders = ['google'];
 
     await el.updateComplete;
 
@@ -275,7 +275,7 @@ describe('IAAccountSettings', () => {
     expect(el.loanHistoryFlag).to.be.equal('private');
 
     // for linked Provider
-    el.linkedProviders = { google: true };
+    el.linkedProviders = ['google'];
     await el.updateComplete;
     const thirdPartyAuth = settingsTemplate?.querySelector(
       '#ia-google'

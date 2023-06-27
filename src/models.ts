@@ -29,9 +29,7 @@ export type MailingListsModel = {
 
 export type SelectedMailingListsModel = Array<string>;
 
-export type LinkedProvidersModel = {
-  [key: string]: boolean;
-};
+export type LinkedProvidersModel = Array<string>;
 
 export type ResponseModel = {
   success?: boolean;
