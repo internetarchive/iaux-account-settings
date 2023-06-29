@@ -10,7 +10,7 @@ import { togglePassword, preventDefaultAndStopEvent } from '../services/util';
 import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
 
 import eyeCrossed from '../assets/eye-crossed';
-import eyeOpen from '../assets/eye.-open';
+import eyeOpen from '../assets/eye-open';
 
 @customElement('authentication-template')
 export class AuthenticationTemplate extends LitElement {

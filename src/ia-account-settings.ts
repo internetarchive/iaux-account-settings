@@ -31,7 +31,7 @@ import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
 import '@internetarchive/ia-pic-uploader';
 import './components/authentication-template';
 import eyeCrossed from './assets/eye-crossed';
-import eyeOpen from './assets/eye.-open';
+import eyeOpen from './assets/eye-open';
 
 @customElement('ia-account-settings')
 export class IAAccountSettings
@@ -64,7 +64,7 @@ export class IAAccountSettings
     [];
 
   /**
-   * contain boolean status about google account is linked
+   * contain linked provider
    *
    * @type {LinkedProvidersModel}
    * @memberof IAUXAccountSettings
@@ -72,7 +72,7 @@ export class IAAccountSettings
   @property({ type: Array }) linkedProviders: LinkedProvidersModel = [];
 
   /**
-   * contain boolean status about google account is linked
+   * contain profile picture URL
    *
    * @type {String}
    * @memberof IAUXAccountSettings
@@ -80,7 +80,7 @@ export class IAAccountSettings
   @property({ type: String }) profilePicture: String = '';
 
   /**
-   * contain boolean status about google account is linked
+   * contain boolean status loan history visibility
    *
    * @type {String | Boolean}
    * @memberof IAUXAccountSettings
