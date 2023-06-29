@@ -181,6 +181,13 @@ export class IAAccountSettings
   @state() private showPassword?: Boolean = false;
 
   /**
+   * flag to verify if API has executed
+   * @type {Boolean}
+   * @memberof IAUXAccountSettings
+   */
+  @state() private apiHasExecuted?: Boolean = false;
+
+  /**
    * since we moved pic upload feature in separate component,
    * just selecting this component to get new selected profile picture
    *
@@ -208,12 +215,16 @@ export class IAAccountSettings
   private userAvatarSuccessMsg =
     'Your profile picture has been updated. Please allow 5 minutes for the change to take effect.';
 
-  private providerUnlinkMsg = 'The third party provider has unlinked.';
+  private providerUnlinkMsg = 'Your Google account has been unlinked.';
 
   private oldUserData: UserModel = {
     email: '',
     screenname: '',
   };
+
+  private ImageHasUploaded = false;
+
+  private providerHasUnlinked = false;
 
   // we need to store the temp provider user wants to unlink from account
   private unlinkProviders: LinkedProvidersModel = [];
@@ -238,8 +249,33 @@ export class IAAccountSettings
     }
 
     if (changed.has('fieldsError') && this.hasFieldError()) {
-      log('buttton keep disabled');
       this.saveButtonDisabled = true;
+    }
+
+    if (changed.has('apiHasExecuted') && this.apiHasExecuted === true) {
+      // display provider unlinked message
+      if (this.providerHasUnlinked) {
+        this.responseFields = {
+          ...this.responseFields,
+          fields: {
+            unlink: this.providerUnlinkMsg,
+            ...this.responseFields?.fields,
+          },
+        };
+      }
+
+      // display image has uploaded message
+      if (this.ImageHasUploaded) {
+        this.responseFields = {
+          ...this.responseFields,
+          fields: {
+            file: this.userAvatarSuccessMsg,
+            ...this.responseFields?.fields,
+          },
+        };
+      }
+
+      this.apiHasExecuted = false;
     }
   }
 
@@ -450,12 +486,18 @@ export class IAAccountSettings
     this.saveButtonDisabled = true;
     preventDefaultAndStopEvent(event);
 
+    // reset field state
+    this.ImageHasUploaded = false;
+    this.providerHasUnlinked = false;
+    this.responseFields = {};
+
     await this.validateScreenname();
     await this.validateEmail();
     await this.validatePassword();
 
     // dispatch enternal events
     this.emitProfileAvatarSaveEvent();
+    this.emitUnlinkProviderEvent();
 
     // if don't have any active error, just procced to save settings
     if (!this.hasFieldError()) {
@@ -473,8 +515,12 @@ export class IAAccountSettings
       }
 
       if (response.success === true) {
-        this.emitUnlinkProviderEvent();
+        this.apiHasExecuted = true;
       }
+
+      // reset the password field after password changed
+      this.userData.password = '';
+      this.passwordField!.value = '';
     }
 
     setTimeout(async () => {
@@ -489,14 +535,8 @@ export class IAAccountSettings
    */
   profilePictureUploaded() {
     this.saveButtonDisabled = true;
-
-    this.responseFields = {
-      ...this.responseFields,
-      fields: {
-        file: this.userAvatarSuccessMsg,
-        ...this.responseFields?.fields,
-      },
-    };
+    this.ImageHasUploaded = true;
+    this.apiHasExecuted = true;
   }
 
   /**
@@ -504,7 +544,6 @@ export class IAAccountSettings
    */
   emitProfileAvatarSaveEvent() {
     if (this.fileInput?.files?.length) {
-      log('profile avatar should be updated!');
       document.dispatchEvent(new Event('saveProfileAvatar'));
     }
   }
@@ -528,13 +567,11 @@ export class IAAccountSettings
         })
       );
 
-      this.responseFields = {
-        ...this.responseFields,
-        fields: {
-          unlink: this.providerUnlinkMsg,
-          ...this.responseFields?.fields,
-        },
-      };
+      this.providerHasUnlinked = true;
+
+      // reset linked providers
+      this.unlinkProviders = [];
+      this.linkedProviders = [];
     }
 
     return nothing;
