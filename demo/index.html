@@ -2,20 +2,67 @@
 <html lang="en-GB">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     html {
       font-size: 10px; /* This is to match petabox's base font size */
     }
 
     body {
-      background: #fafafa;
+      background: #fff;
+      margin-top: 38px;
+    }
+
+    ia-account-settings {
+      display: block;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
   </style>
 </head>
 <body>
-  <app-root></app-root>
+  <div id="demo">
+  </div>
+  <script type="module">
+    import { html, render } from 'lit';
+    import '../dist/index.js';
+    import mailingLists from '../dist/src/assets/mailing-lists.js'
 
-  <script type="module" src="../dist/demo/app-root.js">
+    const userData = {
+      identifier: '@neerajksharma453_gmail_com',
+      screenname: 'neeraj-archive',
+      email: 'neerajksharma453@gmail.com',
+      password: '',
+      isAdmin: false,
+    };
+
+    const selectedMailingLists = [ 'ml_best_of', 'ml_donors' ];
+    const linkedProviders = [ 'google' ];
+
+    render(
+      html`
+      <ia-account-settings
+        .userData="${userData}"
+        .mailingLists="${mailingLists}"
+        .selectedMailingLists=${selectedMailingLists}
+        .linkedProviders=${linkedProviders}
+        .profilePicture=${'../demo/default-preview.jpg'}
+        .loanHistoryFlag=${'public'}
+        .csrfToken=${'sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5'}
+        .updatedFields=${{
+          "screenname": "123Your screen name has been updated successfully.",
+          "mailing_lists": "Mailing lists has been updated!"
+        }}
+      ><div slot="ia-google-login" class="third-party-login-cta">
+          <img src="google-login-placeholder.jpg" alt="" width="200px" >
+          <div>
+            <div id="g_id_signin"></div>
+          </div>
+      </div>
+      </ia-account-settings>`,
+
+      document.querySelector('#demo')
+    )
   </script>
 </body>
 </html>
