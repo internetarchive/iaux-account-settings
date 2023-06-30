@@ -773,12 +773,14 @@ export class IAAccountSettings
   }
 
   get getResponseTemplate() {
+    // &#10006; htmlentity denotes error symbol
     if (this.responseFields?.success === false) {
       return html`<span class="error-field"
         >&#10006; ${this.responseFields?.error}</span
       >`;
     }
 
+    // &#10003; htmlentity denotes success symbol
     return Object.values(this.responseFields?.fields ?? {})?.map(
       msg => html`<span class="success-field">&#10003; ${msg}</span>`
     );
