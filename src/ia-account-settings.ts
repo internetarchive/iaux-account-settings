@@ -649,7 +649,8 @@ export class IAAccountSettings
               picture="${this.profilePicture}"
               ?lookingAtMyAccount=${true}
               type="compact"
-              @fileChanged=${() => {
+              @fileChanged=${e => {
+                this.fieldsError.profile = e.detail.error;
                 this.changeSaveButtonState();
               }}
               @fileUploaded=${() => {

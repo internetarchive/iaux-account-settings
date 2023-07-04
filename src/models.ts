@@ -9,6 +9,7 @@ export type UserModel = {
 };
 
 export type ErrorModel = {
+  profile?: string;
   email?: string;
   screenname?: string;
   password?: string;

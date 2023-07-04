@@ -27,7 +27,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@internetarchive/ia-activity-indicator": "^0.0.5",
-    "@internetarchive/ia-pic-uploader": "0.1.4",
+    "@internetarchive/ia-pic-uploader": "0.0.1-alpha42",
     "lit": "^2.7.4"
   },
   "devDependencies": {
