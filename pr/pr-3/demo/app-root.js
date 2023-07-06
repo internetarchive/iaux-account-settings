@@ -122,6 +122,7 @@
   }
   .form-element label {
     font-weight: normal;
+    vertical-align: middle;
   }
   .form-element label small {
     font-weight: normal;
