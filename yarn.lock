@@ -247,10 +247,10 @@
   dependencies:
     lit "^2.2.2"
 
-"@internetarchive/ia-pic-uploader@0.0.1-alpha42":
-  version "0.0.1-alpha42"
-  resolved "https://registry.yarnpkg.com/@internetarchive/ia-pic-uploader/-/ia-pic-uploader-0.0.1-alpha42.tgz#a94989ede72bbfa7d71f3e79ecb0c62f29214d6d"
-  integrity sha512-GNnTqorlwM1EuVvJ/Poh3PreDJW63NNFf4epYxiPM2fJpVxJy8TU0fPq1oxDrHqEUWOA+0bmBuAOrOoqTcPXeA==
+"@internetarchive/ia-pic-uploader@0.1.6":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@internetarchive/ia-pic-uploader/-/ia-pic-uploader-0.1.6.tgz#cb027e2772349ea6f37083f3dcfe8b3344dad888"
+  integrity sha512-UqZrf3s1JQ+kDKXFlWnaTFOi4z97S4IJUxeMjsOpaZM3IPcT9s+HHl5ltWYg9zTMVfdXodBVw4hqY2SGvV/eTg==
   dependencies:
     "@internetarchive/ia-activity-indicator" "^0.0.5"
     lit "^2.7.4"
