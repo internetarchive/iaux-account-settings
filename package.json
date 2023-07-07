@@ -7,7 +7,7 @@
   },
   "license": "AGPL-3.0-only",
   "author": "Internet Archive",
-  "version": "0.0.1-alpha66",
+  "version": "0.1.1",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@internetarchive/ia-activity-indicator": "^0.0.5",
-    "@internetarchive/ia-pic-uploader": "0.1.4",
+    "@internetarchive/ia-pic-uploader": "0.1.6",
     "lit": "^2.7.4"
   },
   "devDependencies": {

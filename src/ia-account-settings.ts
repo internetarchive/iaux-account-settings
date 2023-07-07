@@ -649,7 +649,8 @@ export class IAAccountSettings
               picture="${this.profilePicture}"
               ?lookingAtMyAccount=${true}
               type="compact"
-              @fileChanged=${() => {
+              @fileChanged=${e => {
+                this.fieldsError.picture = e.detail.error;
                 this.changeSaveButtonState();
               }}
               @fileUploaded=${() => {
@@ -773,12 +774,14 @@ export class IAAccountSettings
   }
 
   get getResponseTemplate() {
+    // &#10006; htmlentity denotes error symbol
     if (this.responseFields?.success === false) {
       return html`<span class="error-field"
         >&#10006; ${this.responseFields?.error}</span
       >`;
     }
 
+    // &#10003; htmlentity denotes success symbol
     return Object.values(this.responseFields?.fields ?? {})?.map(
       msg => html`<span class="success-field">&#10003; ${msg}</span>`
     );
@@ -836,7 +839,7 @@ export class IAAccountSettings
         <p>
           Items you've uploaded will remain on the Internet Archive. If you wish
           to remove items,<br />
-          please do so before delete your account.
+          please do so before deleting your account.
         </p>
         <a
           href="https://help.archive.org/help/how-do-i-delete-my-account/"
@@ -905,11 +908,6 @@ export class IAAccountSettings
           <li>
             <a href="https://archive.org/iathreads/forum-new.php"
               >Make a new Forum</a
-            >
-          </li>
-          <li>
-            <a href="https://pi.archive.org/control/blockparty.php"
-              >Block Party</a
             >
           </li>
         </ul>

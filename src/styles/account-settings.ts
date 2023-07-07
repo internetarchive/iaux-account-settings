@@ -82,6 +82,7 @@ export const AccountSettings = css`
   }
   .form-element label {
     font-weight: normal;
+    vertical-align: middle;
   }
   .form-element label small {
     font-weight: normal;
@@ -130,6 +131,7 @@ export const AccountSettings = css`
   }
 
   .error-field {
+    margin: 0;
     color: #bb0505;
     margin: 3px 0px;
     font-size: 1.2rem;
