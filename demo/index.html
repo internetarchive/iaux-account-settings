@@ -18,6 +18,13 @@
       display: block;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
+
+    #form-center {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid blueviolet;
+      background-color: aliceblue;
+    }
   </style>
 </head>
 <body>
@@ -58,6 +65,21 @@
           <div>
             <div id="g_id_signin"></div>
           </div>
+      </div>
+      <div slot="center-of-form" id="form-center">
+        <button id="random-size-color" @click=${() => {
+          const randomColor = Math.floor(Math.random()*16777215).toString(16);
+          const randomSize = Math.floor(Math.random() * 100) + 50;
+          document.getElementById('form-center').style.backgroundColor = `#${randomColor}`;
+          // document.getElementById('form-center').style.width = `${randomSize}px`;
+          document.getElementById('form-center').style.height = `${randomSize}px`;
+        }}>Click to change height</button>
+
+        <button id="random-size-color" @click=${() => {
+          const centerSlot = document.getElementById('form-center');
+          const parent = centerSlot.parentNode;
+          parent.removeChild(centerSlot);
+        }}>Click to delete slotted content</button>
       </div>
       </ia-account-settings>`,
 
