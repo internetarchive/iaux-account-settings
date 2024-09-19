@@ -585,8 +585,12 @@ export class IAAccountSettings
       identifier=${this.userData.identifier}
       email=${this.userData.email}
       csrfToken=${this.csrfToken}
-      @ia-authenticated=${() => {
+      @ia-authenticated=${(e: CustomEvent) => {
         this.lookingToAuth = false;
+        const { token } = e.detail;
+        this.dispatchEvent(
+          new CustomEvent('ready', { detail: { mgcToken: token } })
+        );
         try {
           localStorage.setItem('keep-authenticated', 'yes');
         } catch (error) {

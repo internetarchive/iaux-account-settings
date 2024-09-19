@@ -37,6 +37,7 @@ export type ResponseModel = {
   error?: string;
   data?: object;
   fields?: object;
+  token?: string; // monthly-donor-portal token
 };
 
 export type GoogleConfigModel = {
