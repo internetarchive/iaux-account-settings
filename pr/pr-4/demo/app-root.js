@@ -956,7 +956,7 @@
       </g>
       <circle cx="11" cy="8" fill="#333" r="2"/>
     </g>
-  </svg>`;let $=class extends A{constructor(){super(...arguments),this.authenticationType="ia",this.identifier="",this.email="",this.csrfToken="",this.showPassword=!1,this.password="",this.passwordError=""}async verifyIAPassword(e){var t,i;if(Me(e),!this.password){(t=this.passwordField)===null||t===void 0||t.focus(),this.passwordError=" * password can't be empty";return}this.showLoadingIndicator=!0;const o=await B({action:"verify-password",identifier:this.identifier,password:this.password,csrfToken:this.csrfToken});o.success===!0?this.dispatchEvent(new Event("ia-authenticated")):((i=this.passwordField)===null||i===void 0||i.focus(),this.passwordError=o.error),this.showLoadingIndicator=!1}setPassword(e){const t=e.target;this.password=t.value,this.passwordError=""}get iaPasswordVerification(){return v`
+  </svg>`;let $=class extends A{constructor(){super(...arguments),this.authenticationType="ia",this.identifier="",this.email="",this.csrfToken="",this.showPassword=!1,this.password="",this.passwordError=""}async verifyIAPassword(e){var t,i;if(Me(e),!this.password){(t=this.passwordField)===null||t===void 0||t.focus(),this.passwordError=" * password can't be empty";return}this.showLoadingIndicator=!0;const o=await B({action:"verify-password",identifier:this.identifier,password:this.password,csrfToken:this.csrfToken});o.success===!0?this.dispatchEvent(new CustomEvent("ia-authenticated",{detail:{token:o.token}})):((i=this.passwordField)===null||i===void 0||i.focus(),this.passwordError=o.error),this.showLoadingIndicator=!1}setPassword(e){const t=e.target;this.password=t.value,this.passwordError=""}get iaPasswordVerification(){return v`
       <p>Please verify your password to access account settings.</p>
       <div class="form-element">
         <label for="password">Internet Archive password</label>
@@ -1038,7 +1038,7 @@
       identifier=${this.userData.identifier}
       email=${this.userData.email}
       csrfToken=${this.csrfToken}
-      @ia-authenticated=${()=>{this.lookingToAuth=!1;try{localStorage.setItem("keep-authenticated","yes")}catch{}}}
+      @ia-authenticated=${e=>{this.lookingToAuth=!1;const{token:t}=e.detail;this.dispatchEvent(new CustomEvent("ready",{detail:{mgcToken:t}}));try{localStorage.setItem("keep-authenticated","yes")}catch{}}}
     >
       <slot name="ia-google-login"></slot>
     </authentication-template>`}get settingsTemplate(){var e;return v`<div
