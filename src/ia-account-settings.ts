@@ -585,8 +585,12 @@ export class IAAccountSettings
       identifier=${this.userData.identifier}
       email=${this.userData.email}
       csrfToken=${this.csrfToken}
-      @ia-authenticated=${() => {
+      @ia-authenticated=${(e: CustomEvent) => {
         this.lookingToAuth = false;
+        const { token } = e.detail;
+        this.dispatchEvent(
+          new CustomEvent('ready', { detail: { mgcToken: token } })
+        );
         try {
           localStorage.setItem('keep-authenticated', 'yes');
         } catch (error) {
@@ -605,9 +609,9 @@ export class IAAccountSettings
     >
       <form id="form" name="account-settings" method="post" autocomplete="off">
         <div
-          class="form-element header ${this.showLoadingIndicator
-            ? 'pointer-none'
-            : ''}"
+          class="form-element header ${
+            this.showLoadingIndicator ? 'pointer-none' : ''
+          }"
         >
           <h2>Account settings</h2>
           <button
@@ -628,9 +632,11 @@ export class IAAccountSettings
             }}
             .disabled=${this.saveButtonDisabled}
           >
-            ${this.showLoadingIndicator
-              ? this.loadingIndicatorTemplate
-              : 'Save changes'}
+            ${
+              this.showLoadingIndicator
+                ? this.loadingIndicatorTemplate
+                : 'Save changes'
+            }
           </button>
         </div>
 
@@ -716,15 +722,19 @@ export class IAAccountSettings
             </button>
             <span class="error-field">${this.fieldsError.password}</span>
           </div>
-
+          <div>
+            <slot name="center-of-form"></slot>
+          <div>
           <div class="form-element">
             <label>Set borrow history</label>
             <input
               type="checkbox"
               id="loan-history"
               name="loan-history"
-              .checked=${this.loanHistoryFlag === 'public' ||
-              this.loanHistoryFlag === true}
+              .checked=${
+                this.loanHistoryFlag === 'public' ||
+                this.loanHistoryFlag === true
+              }
               @click=${this.setLoanHistory}
             />
             <label for="loan-history"> Visible to the public</label>
@@ -743,15 +753,17 @@ export class IAAccountSettings
             <label for="linked-account"
               >Linked 3rd party accounts (e.g. Google)</label
             >
-            ${Object.keys(this.linkedProviders).length
-              ? this.linkedAccountTemplate
-              : 'You have no linked accounts'}
+            ${
+              Object.keys(this.linkedProviders).length
+                ? this.linkedAccountTemplate
+                : 'You have no linked accounts'
+            }
           </div>
 
           <div
-            class="form-element delete-account ${this.attemptToDelete
-              ? 'hide'
-              : ''}"
+            class="form-element delete-account ${
+              this.attemptToDelete ? 'hide' : ''
+            }"
           >
             <button
               type="button"
@@ -948,6 +960,16 @@ export class IAAccountSettings
         }
         .sticky-header .body-content {
           margin-top: 50px;
+        }
+
+        slot[name='center-of-form'] {
+          display: flex;
+          align-items: center;
+        }
+
+        ::slotted(#form-center) {
+          margin-bottom: 15px;
+          display: flex;
         }
       `,
     ];

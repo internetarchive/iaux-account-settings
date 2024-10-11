@@ -105,7 +105,11 @@ export class AuthenticationTemplate extends LitElement {
 
     if (response.success === true) {
       // successfully authenticated
-      this.dispatchEvent(new Event('ia-authenticated'));
+      this.dispatchEvent(
+        new CustomEvent('ia-authenticated', {
+          detail: { token: response.token },
+        })
+      );
     } else {
       this.passwordField?.focus();
       this.passwordError = response.error;
