@@ -132,7 +132,10 @@ export class AuthenticationTemplate extends LitElement {
 
   get iaPasswordVerification() {
     return html`
-      <p>Please verify your password to access account settings.</p>
+      <p class="title">
+        To access your account settings, as an extra security measure, please
+        enter your password.
+      </p>
       <div class="form-element">
         <label for="password">Internet Archive password</label>
         <input
@@ -183,7 +186,10 @@ export class AuthenticationTemplate extends LitElement {
 
   get providerVerification() {
     return html`
-      <p>Please sign in to access account settings.</p>
+      <p class="title">
+        To access your account settings, as an extra security measure, please
+        sign in with Google.
+      </p>
       <div class="form-element footer">
         <a @click=${() => (this.authenticationType = 'ia')}
           >Prefer to use your Internet Archive password?</a
@@ -225,6 +231,10 @@ export class AuthenticationTemplate extends LitElement {
           display: inherit;
           width: fit-content;
           cursor: pointer;
+        }
+        .authentication-template .title {
+          max-width: 35rem;
+          margin-bottom: 2rem;
         }
         .footer {
           position: absolute;
