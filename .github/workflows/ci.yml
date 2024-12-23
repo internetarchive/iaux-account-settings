@@ -16,11 +16,12 @@ jobs:
       with:
         node-version: 16.x
 
+    - uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
     - name: Install dependencies
       run: yarn install
 
     - name: Run tests
       run: yarn run test
-
-    - name: Upload reports
-      run: npx codecov
