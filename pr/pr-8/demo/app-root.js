@@ -1251,7 +1251,7 @@
       class="ia-button danger ${this.showLoadingIndicator?"pointer-none":""}"
       type="button"
       ?disabled=${!this.confirmDelete}
-      @click=${async()=>{this.showLoadingIndicator=!0,(await B({action:"delete-account",confirmDelete:this.confirmDelete,csrfToken:this.csrfToken})).success&&(window.location.href=window.location.pathname==="/demo/"?"/demo/":"/")}}
+      @click=${async()=>{this.showLoadingIndicator=!0,(await B({action:"delete-account",confirmDelete:this.confirmDelete,csrfToken:this.csrfToken})).success&&window.location.reload()}}
     >
       ${this.showLoadingIndicator?this.loadingIndicatorTemplate:"Delete account"}
     </button>`}get adminFunctionsTemplate(){return v`<div class="col-md-4">
