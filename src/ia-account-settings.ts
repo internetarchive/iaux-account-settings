@@ -892,7 +892,10 @@ export class IAAccountSettings
           csrfToken: this.csrfToken,
         })) as ResponseModel;
 
-        if (response.success) window.location.reload();
+        if (response.success)
+          window.location.href = window.location.pathname.startsWith('/demo/')
+            ? '/demo/'
+            : '/';
       }}
     >
       ${this.showLoadingIndicator
