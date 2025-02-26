@@ -188,6 +188,13 @@ export class IAAccountSettings
   @state() private apiHasExecuted?: Boolean = false;
 
   /**
+   * Stores the authentication method used (e.g. 'ia' for Internet Archive)
+   * @type {String}
+   * @memberof IAUXAccountSettings
+   */
+  @state() private authBy?: String = '';
+
+  /**
    * since we moved pic upload feature in separate component,
    * just selecting this component to get new selected profile picture
    *
@@ -563,7 +570,7 @@ export class IAAccountSettings
       log(`${provider} provider should be unlinked!`);
       document.dispatchEvent(
         new CustomEvent('IAThirdPartyAuth:unlinkProvider', {
-          detail: { provider },
+          detail: { provider, authBy: this.authBy },
         })
       );
 
@@ -587,6 +594,7 @@ export class IAAccountSettings
       csrfToken=${this.csrfToken}
       @ia-authenticated=${(e: CustomEvent) => {
         this.lookingToAuth = false;
+        this.authBy = 'ia';
         const { token } = e.detail;
         this.dispatchEvent(
           new CustomEvent('ready', { detail: { mgcToken: token } })
