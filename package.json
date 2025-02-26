@@ -11,18 +11,19 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {
-    "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "start": "yarn run prepare && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "prepare:ghpages": "rimraf ghpages && yarn run prepare && vite build",
     "prepare": "rimraf dist && tsc && husky install",
-    "build": "tsc",
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts,.html . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "circular": "madge --circular --extensions ts .",
     "test": "tsc && yarn run lint && yarn run circular && wtr --coverage",
+    "test:fast": "tsc && wtr --coverage",
     "test:watch": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
-    "ghpages:build": "rimraf ghpages && yarn run prepare && vite build",
-    "ghpages:publish": "yarn run ghpages:prepare -e $(git branch --show-current)",
-    "ghpages:prepare": "yarn run ghpages:build && touch ghpages/.nojekyll && yarn run ghpages:generate",
-    "ghpages:generate": "gh-pages -t -d ghpages -m \"Build for $(git log --pretty=format:\"%h %an %ai %s\" -n1) [skip ci]\""
+    "deploy": "yarn run deploy:run -e $(git branch --show-current)",
+    "deploy:run": "yarn run prepare:ghpages && touch ghpages/.nojekyll && yarn run deploy:gh",
+    "deploy:gh": "gh-pages -t -d ghpages -m \"Build for $(git log --pretty=format:\"%h %an %ai %s\" -n1) [skip ci]\"",
+    "typecheck": "yarn tsc --noEmit"
   },
   "types": "dist/index.d.ts",
   "dependencies": {
