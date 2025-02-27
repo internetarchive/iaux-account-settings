@@ -917,12 +917,12 @@ export class IAAccountSettings
         <hr />
         <ul>
           <li>
-            <a href="https://pi.archive.org/control/setadmin.php"
+            <a href="https://catalogd.archive.org/control/setadmin.php"
               >Grant or revoke administrator privileges</a
             >
           </li>
           <li>
-            <a href="https://pi.archive.org/control/useradmin.php"
+            <a href="https://catalogd.archive.org/control/useradmin.php"
               >User Administration</a
             >
           </li>
