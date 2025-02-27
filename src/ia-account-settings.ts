@@ -74,26 +74,26 @@ export class IAAccountSettings
   /**
    * contain profile picture URL
    *
-   * @type {String}
+   * @type {string}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) profilePicture: String = '';
+  @property({ type: String }) profilePicture: string = '';
 
   /**
    * contain boolean status loan history visibility
    *
-   * @type {String | Boolean}
+   * @type {string | boolean}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) loanHistoryFlag: String | Boolean = '';
+  @property({ type: String }) loanHistoryFlag: string | boolean = '';
 
   /**
    * contain profile csrf token
    *
-   * @type {String}
+   * @type {string}
    * @memberof IAUXAccountSettings
    */
-  @property({ type: String }) csrfToken: String = '';
+  @property({ type: String }) csrfToken: string = '';
 
   /**
    * contain fileSelect input field
@@ -107,7 +107,6 @@ export class IAAccountSettings
   /**
    * contains error data for form fields
    *
-   * @private
    * @type {ErrorModel}
    * @memberof IAUXAccountSettings
    */
@@ -117,82 +116,81 @@ export class IAAccountSettings
    * open delete form
    *
    * @private
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private attemptToDelete?: Boolean;
+  @state() private attemptToDelete?: boolean;
 
   /**
    * enable delete button when you make sure
    *
    * @private
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private confirmDelete?: Boolean = false;
+  @state() private confirmDelete: boolean = false;
 
   /**
    * object that contains updated fields data/text
    *
    * @private
-   * @type {Object}
+   * @type {ResponseModel}
    * @memberof IAAccountSettings
    */
-  @state() private responseFields?: ResponseModel = {};
+  @state() private responseFields: ResponseModel = {};
 
   /**
    * determine if need to disable save button
    *
-   * @private
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAAccountSettings
    */
-  @state() saveButtonDisabled?: Boolean = true;
+  @state() saveButtonDisabled: boolean = true;
 
   /**
    * determine if want to show authenticate page
    *
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() lookingToAuth?: Boolean = true;
+  @state() lookingToAuth: boolean = true;
 
   /**
    * determine if need to show loading indicator on buttons
    *
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() showLoadingIndicator?: Boolean;
+  @state() showLoadingIndicator?: boolean;
 
   /**
    * set true if want to make header sticky
    *
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() isStickyHeader?: Boolean = false;
+  @state() isStickyHeader: boolean = false;
 
   /**
    * toggle password field type to text|password
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private showPassword?: Boolean = false;
+  @state() private showPassword: boolean = false;
 
   /**
    * flag to verify if API has executed
-   * @type {Boolean}
+   * @type {boolean}
    * @memberof IAUXAccountSettings
    */
-  @state() private apiHasExecuted?: Boolean = false;
+  @state() private apiHasExecuted: boolean = false;
 
   /**
    * Stores the authentication method used (e.g. 'ia' for Internet Archive)
-   * @type {String}
+   * @type {string}
    * @memberof IAUXAccountSettings
    */
-  @state() private authBy?: String = '';
+  @state() private authBy: 'ia' | 'google' | '' = '';
 
   /**
    * since we moved pic upload feature in separate component,
