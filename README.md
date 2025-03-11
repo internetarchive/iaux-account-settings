@@ -1,20 +1,17 @@
-![Build Status](https://github.com/internetarchive/iaux-typescript-wc-template/actions/workflows/ci.yml/badge.svg) [![codecov](https://codecov.io/gh/internetarchive/iaux-typescript-wc-template/branch/main/graph/badge.svg?token=ZOYRJ2BV9W)](https://codecov.io/gh/internetarchive/iaux-typescript-wc-template)
+![Build Status](https://github.com/internetarchive/iaux-account-settings/actions/workflows/ci.yml/badge.svg) [![codecov](https://codecov.io/gh/internetarchive/iaux-account-settings/branch/main/graph/badge.svg?token=ZOYRJ2BV9W)](https://codecov.io/gh/internetarchive/iaux-account-settings)
 
-# Internet Archive Typescript WebComponent Template
+# Internet Archive Account Settings WebComponent
 
-This is a base template for creating Typescript WebComponents. It is based off of the [Open WebComponents generator](https://open-wc.org/docs/development/generator/) with some IA-specific customizations and some development niceities.
+```markdown
+This WebComponent, built using the [IA Typescript WebComponent Template](https://github.com/internetarchive/iaux-typescript-wc-template), provides account settings management functionality for Internet Archive users. It extends the [Open WebComponents generator](https://open-wc.org/docs/development/generator/) with Internet Archive-specific features and developer tools.
 
-## Usage
+```
 
-1. Click the "Use this Template" button in GitHub to create a new repository based on this one.
-2. Clone your new repo and update the things below:
+## Installation
 
-### Things to update in your copy
-1. Remove this section
-2. Search for the strings `your-webcomponent` and `YourWebComponent` and those are most of the spots that need to be updated.
-3. `README.md` (this file). Update the readme in general, but also the badge URLs
-4. `package.json` Update the name and description
-5. Rename the `your-webcomponent.ts` and its associated `.test` file
+```bash
+npm install @internetarchive/iaux-account-settings
+```
 
 ## Local Demo with `web-dev-server`
 ```bash
@@ -22,13 +19,63 @@ yarn start
 ```
 To run a local development server that serves the basic demo located in `demo/index.html`
 
+## Usage `<ia-account-settings>` Component
+
+### Properties/Attributes
+
+- `userData`: Contains user information.
+- `mailingLists`: Active mailing lists available.
+- `selectedMailingLists`: User's selected mailing lists.
+- `linkedProviders`: Linked third-party providers.
+- `profilePicture`: Profile picture URL.
+- `loanHistoryFlag`: Boolean status for loan history visibility.
+- `csrfToken`: CSRF token for form submissions.
+
+### Methods
+
+- `setScreenname(e: Event)`: Sets the screen name.
+- `setEmail(e: Event)`: Sets the email.
+- `setPassword(e: Event)`: Sets the password.
+- `setLoanHistory(e: Event)`: Sets the loan history visibility.
+- `setMailingList(e: Event)`: Sets the mailing list subscriptions.
+- `setLinkedProvider(e: Event)`: Sets the linked provider.
+- `resetErrorFields(field: string)`: Resets error fields.
+- `hasFieldError()`: Checks if there are any field errors.
+- `validateScreenname()`: Validates the screen name.
+- `validateEmail()`: Validates the email.
+- `validatePassword()`: Validates the password.
+- `isEmailAvailable()`: Checks if the email is available.
+- `isScreennameAvailable()`: Checks if the screen name is available.
+- `saveAccountSettings(event: Event)`: Saves the account settings.
+- `profilePictureUploaded()`: Handles profile picture upload success.
+- `emitProfileAvatarSaveEvent()`: Emits an event to save the profile avatar.
+- `emitUnlinkProviderEvent()`: Emits an event to unlink a provider.
+
+### Slots
+
+- `center-of-form`: Slot for adding custom content in the center of the form.
+
+### Example Usage
+
+```html
+<ia-account-settings
+  .userData="${userData}"
+  .mailingLists="${mailingLists}"
+  .selectedMailingLists="${selectedMailingLists}"
+  .linkedProviders="${linkedProviders}"
+  .profilePicture="${profilePicture}"
+  .loanHistoryFlag="${loanHistoryFlag}"
+  .csrfToken="${csrfToken}"
+></ia-account-settings>
+```
+
 ## Testing with Web Test Runner
 To run the suite of Web Test Runner tests, run
 ```bash
 yarn run test
 ```
 
-To run the tests in watch mode (for &lt;abbr title=&#34;test driven development&#34;&gt;TDD&lt;/abbr&gt;, for example), run
+To run the tests in watch mode (for <abbr title="test driven development">TDD</abbr>, for example), run
 
 ```bash
 yarn run test:watch
@@ -141,4 +188,4 @@ Things that trigger automatic site generation:
 
 Another thing to note: pushing a branch up alone will not trigger site creation. 
 
-Happy devving ^_^ 🥳  🎉 
+Happy devving ^_^ 🥳  🎉
