@@ -2,10 +2,8 @@
 
 # Internet Archive Account Settings WebComponent
 
-```markdown
 This WebComponent, built using the [IA Typescript WebComponent Template](https://github.com/internetarchive/iaux-typescript-wc-template), provides account settings management functionality for Internet Archive users. It extends the [Open WebComponents generator](https://open-wc.org/docs/development/generator/) with Internet Archive-specific features and developer tools.
 
-```
 
 ## Installation
 
