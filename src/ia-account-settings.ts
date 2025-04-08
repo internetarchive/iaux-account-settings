@@ -405,10 +405,10 @@ export class IAAccountSettings
 
     const invalidLength =
       this.userData.screenname.length < 3 ||
-      this.userData.screenname.length > 127;
+      this.userData.screenname.length > 40;
 
     if (this.userData.screenname === '' || invalidLength) {
-      error = 'The screen name needs to be between 3 and 127 characters long.';
+      error = 'The screen name needs to be between 3 and 40 characters long.';
     } else if (this.userData.screenname?.includes('\\')) {
       error = 'This does not appear to be a valid screen name.';
     } else if ((await this.isScreennameAvailable()) === false) {

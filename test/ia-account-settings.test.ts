@@ -134,7 +134,7 @@ describe('IAAccountSettings', () => {
     // validation for password input field
     el.validateScreenname();
     expect(el.fieldsError.screenname).to.equal(
-      'The screen name needs to be between 3 and 127 characters long.'
+      'The screen name needs to be between 3 and 40 characters long.'
     );
 
     el.userData.screenname = 'neeraj\\sharma';
