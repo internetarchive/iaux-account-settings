@@ -667,8 +667,12 @@ export class IAAccountSettings
 
           <div class="form-element ">
             <label for="screenname">
-              Change screenname <small>(will not change user id)</small>
+              Change screenname
             </label>
+            <div class="input-note">
+              Changing your screenname will not change your user id.<br />
+              You cannot re-use a screenname once it has been changed.
+            </div>
             <input
               type="text"
               class="form-control"
@@ -683,8 +687,12 @@ export class IAAccountSettings
 
           <div class="form-element">
             <label for="email">
-              Change email <small>(verification will be required)</small>
+              Change email
             </label>
+            <div class="input-note">
+              After changing your email address, items you've uploaded will no longer be associated with your account.<br />
+              You cannot re-use an email address once it has been changed.
+            </div>
             <input
               type="email"
               class="form-control"
