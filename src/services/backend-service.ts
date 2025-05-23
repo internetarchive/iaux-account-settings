@@ -42,9 +42,15 @@ export async function backendServiceHandler(options: any) {
     formData.append('loan-history-flag', option.loanHistoryFlag);
   }
 
-  if (window?.location?.pathname === '/demo/') baseHost = '/demo/';
-
-  console.log(window?.location.pathname);
+  // Check if the host is the demo app
+  const pathname = window?.location?.pathname;
+  if (
+    pathname.includes('/demo/') &&
+    (pathname.includes('localhost') ||
+      pathname.includes('iaux-account-settings'))
+  ) {
+    baseHost = '/demo/';
+  }
 
   try {
     await fetch(baseHost, {
