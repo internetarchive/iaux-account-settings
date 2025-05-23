@@ -44,6 +44,8 @@ export async function backendServiceHandler(options: any) {
 
   if (window?.location?.pathname === '/demo/') baseHost = '/demo/';
 
+  console.log(window?.location.pathname);
+
   try {
     await fetch(baseHost, {
       mode: 'no-cors',
