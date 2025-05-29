@@ -1330,12 +1330,12 @@
         .mailingLists="${Ct}"
         .selectedMailingLists=${Lt}
         .linkedProviders=${It}
-        .profilePicture=${"../dist/src/assets/default-preview.jpg"}
+        .profilePicture=${"../demo/default-preview.jpg"}
         .loanHistoryFlag=${"public"}
         .csrfToken=${"sfsdflksjfkfeteldkfjlf37583585n534535ui5n353h5"}
         .updatedFields=${{screenname:"123Your screen name has been updated successfully.",mailing_lists:"Mailing lists has been updated!"}}
       ><div slot="ia-google-login" class="third-party-login-cta">
-          <img src="../dist/src/assets/google-login-placeholder.jpg" alt="" width="200px" >
+          <img src="google-login-placeholder.jpg" alt="" width="200px" >
           <div>
             <div id="g_id_signin"></div>
           </div>
