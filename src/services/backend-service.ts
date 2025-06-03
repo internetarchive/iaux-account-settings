@@ -42,7 +42,7 @@ export async function backendServiceHandler(options: any) {
     formData.append('loan-history-flag', option.loanHistoryFlag);
   }
 
-  if (window?.location?.pathname === '/demo/') baseHost = '/demo/';
+  if (window?.location?.pathname.includes('/demo/')) baseHost = '/demo/';
 
   try {
     await fetch(baseHost, {
