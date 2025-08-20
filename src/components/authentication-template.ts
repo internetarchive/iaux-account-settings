@@ -7,7 +7,7 @@ import type { ResponseModel } from '../models';
 import { backendServiceHandler } from '../services/backend-service';
 import { togglePassword, preventDefaultAndStopEvent } from '../services/util';
 
-import '@internetarchive/ia-activity-indicator/ia-activity-indicator';
+import '@internetarchive/ia-activity-indicator';
 
 import eyeCrossed from '../assets/eye-crossed';
 import eyeOpen from '../assets/eye-open';
